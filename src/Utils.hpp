@@ -20,9 +20,10 @@ namespace Utils
         }
 
     } // namespace internal
-    inline std::filesystem::path FileDialog()
+    inline std::filesystem::path FileDialog(const char* filter = "Any files | *")
     {
-        return std::filesystem::path(internal::Zenity("zenity --file-selection"));
+        std::string command = fmt::format("zenity --file-selection --file-filter=\"{}\"", filter);
+        return std::filesystem::path(internal::Zenity(command.c_str()));
     }
 
     inline std::filesystem::path DirectoryDialog()

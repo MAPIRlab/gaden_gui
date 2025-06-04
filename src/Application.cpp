@@ -9,7 +9,7 @@ void Application::Run()
     AmentImgui imgui;
     imgui.Setup(nullptr,
                 "Gaden",
-                900,
+                500,
                 700,
                 imgui.FlagsFixedLayout());
 
