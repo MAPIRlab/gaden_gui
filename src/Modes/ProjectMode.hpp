@@ -1,5 +1,6 @@
 #pragma once
 #include "Application.hpp"
+#include "ImGuiUtils.hpp"
 #include "Mode.hpp"
 #include "Modes/ConfigurationMode.hpp"
 #include "Project.hpp"
@@ -10,8 +11,9 @@ class ProjectMode : public Mode
 {
 public:
     ProjectMode(std::shared_ptr<Project> _project)
-        : project(_project)
-    {}
+    {
+        g_app->project = _project;
+    }
 
     void OnPush() override
     {}
@@ -27,17 +29,21 @@ public:
 
     void OnGUI() override
     {
-        ImGui::Text("Project: '%s'", project->GetRoot().c_str());
+        ImGui::Text("Project: '%s'", g_app->project->GetRoot().c_str());
+        ImGui::VerticalSpace(10);
 
-        for (gaden::EnvironmentConfigMetadata& config : project->configurations)
+        for (auto& [name, config] : g_app->project->configurations)
         {
             std::string buttonText = fmt::format("Open configuration {}", config.GetName());
+            ImGui::HorizontalSpace(20);
             if (ImGui::Button(buttonText.c_str()))
             {
                 g_app->PushMode(std::make_shared<ConfigurationMode>(config));
             }
         }
 
+        ImGui::HorizontalSpace(20);
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::CreateNew);
         if (ImGui::Button("Create new configuration"))
         {
             std::string name = Utils::TextInput("Create new configuration", "Configuration name");
@@ -46,18 +52,23 @@ public:
                 GADEN_ERROR("Invalid configuration name. Using 'config' instead");
                 name = "config";
             }
-            gaden::EnvironmentConfigMetadata config(project->GetConfigurationPath(name));
+            auto path = g_app->project->GetConfigurationPath(name);
+            auto [iterator, inserted] = g_app->project->configurations.emplace(name, g_app->project->GetConfigurationPath(name));
+            gaden::EnvironmentConfigMetadata& config = iterator->second;
             config.CreateTemplate();
 
             g_app->PushMode(std::make_shared<ConfigurationMode>(config));
         }
+        ImGui::PopStyleColor();
 
+        ImGui::VerticalSpace(20);
+        ImGui::HorizontalSpace(20);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::Back);
         if (ImGui::Button("Back"))
         {
             g_app->PopMode();
         }
+        ImGui::PopStyleColor();
     }
-
-private:
-    std::shared_ptr<Project> project;
 };

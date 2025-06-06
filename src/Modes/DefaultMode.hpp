@@ -22,28 +22,44 @@ class DefaultMode : public Mode
 
     void OnGUI() override
     {
-        ImGui::Text("I'm in default mode!");
-        if (ImGui::Button("Create New Gaden Project"))
+        ImGui::Text("%s", fmt::format("GadenGUI v{}.{}", 0, 1).c_str());
+        ImGui::Dummy(ImVec2(0, 30.f));
+
+        if (ImGui::ButtonCenteredOnLine("Load Existing Gaden Project"))
         {
             auto path = Utils::DirectoryDialog();
-            auto project = std::make_shared<Project>(path);
-            project->CreateTemplate();
-
-            g_app->PushMode(std::make_shared<ProjectMode>(project));
+            if (path.is_absolute() && std::filesystem::exists(path))
+            {
+                auto project = std::make_shared<Project>(path);
+                if (project->ReadDirectory())
+                    g_app->PushMode(std::make_shared<ProjectMode>(project));
+                else
+                    Utils::DisplayError(fmt::format("'{}' is not the path of a valid gaden project", path));
+            }
         }
 
-        if (ImGui::Button("Load Existing Gaden Project"))
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::CreateNew);
+        if (ImGui::ButtonCenteredOnLine("Create New Gaden Project"))
         {
             auto path = Utils::DirectoryDialog();
-            auto project = std::make_shared<Project>(path);
-            project->ReadDirectory();
+            if (path.is_absolute() && std::filesystem::exists(path) && std::filesystem::is_directory(path))
+            {
+                auto project = std::make_shared<Project>(path);
+                project->CreateTemplate();
+                project->ReadDirectory();
 
-            g_app->PushMode(std::make_shared<ProjectMode>(project));
+                g_app->PushMode(std::make_shared<ProjectMode>(project));
+            }
+            else
+                Utils::DisplayError(fmt::format("Directory '{}' does not exist", path));
         }
+        ImGui::PopStyleColor();
 
-        if (ImGui::Button("Exit Gaden"))
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::Back);
+        if (ImGui::ButtonCenteredOnLine("Exit GadenGUI"))
         {
             g_app->shouldClose = true;
         }
+        ImGui::PopStyleColor();
     }
 };

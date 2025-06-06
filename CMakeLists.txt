@@ -4,7 +4,7 @@ project(gaden_gui)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-glldb -O0")
 
 add_subdirectory(third_party/gaden_core)
 add_subdirectory(third_party/ament_imgui/ament_imgui)

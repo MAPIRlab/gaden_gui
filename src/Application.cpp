@@ -1,6 +1,7 @@
 #include "Application.hpp"
 #include "Modes/DefaultMode.hpp"
 #include "ament_imgui/ament_imgui.h"
+#include "ament_imgui/fonts.hpp"
 #include <chrono>
 #include <thread>
 
@@ -9,9 +10,11 @@ void Application::Run()
     AmentImgui imgui;
     imgui.Setup(nullptr,
                 "Gaden",
-                500,
                 700,
-                imgui.FlagsFixedLayout());
+                700,
+                imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
+
+    ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_VariableFont, ImGui::Fonts::Roboto_VariableFont_size, 17.f);
 
     auto defaultMode = std::make_shared<DefaultMode>();
     PushMode(defaultMode);

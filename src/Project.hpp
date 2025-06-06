@@ -11,8 +11,6 @@ public:
     std::string GetConfigurationPath(std::string const& name) { return rootDirectory / "environment_configurations" / name; }
 
 public:
-    std::vector<gaden::EnvironmentConfigMetadata> configurations;
-
-private:
+    std::map<std::string, gaden::EnvironmentConfigMetadata> configurations;
     std::filesystem::path rootDirectory;
 };

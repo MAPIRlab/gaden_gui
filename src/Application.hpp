@@ -1,5 +1,6 @@
 #pragma once
 #include "Modes/Mode.hpp"
+#include "Project.hpp"
 #include <memory>
 #include <stack>
 
@@ -13,6 +14,7 @@ public:
 
 public:
     bool shouldClose = false;
+    std::shared_ptr<Project> project;
 
 private:
     std::stack<std::shared_ptr<Mode>> modeStack;

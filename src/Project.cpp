@@ -11,15 +11,15 @@ bool Project::ReadDirectory()
     try
     {
         std::filesystem::path configurationsDir = rootDirectory / "environment_configurations";
+        if (!std::filesystem::exists(configurationsDir))
+            return false;
         auto subDirs = gaden::paths::GetAllFilesInDirectory(configurationsDir);
-
-        configurations.reserve(subDirs.size());
 
         for (auto const& dir : subDirs)
         {
             gaden::EnvironmentConfigMetadata config(dir);
             GADEN_CHECK_RESULT(config.ReadDirectory());
-            configurations.push_back(config);
+            configurations.insert({config.GetName(), config});
         }
     }
     catch (std::exception const& e)
@@ -40,12 +40,12 @@ bool Project::CreateTemplate()
 
     gaden::EnvironmentConfigMetadata config(configPath);
     if (config.CreateTemplate())
-        configurations.push_back(config);
+        configurations.insert({config.GetName(), config});
     else
     {
         GADEN_ERROR("Failed to create sample configuration at '{}'", configPath);
         return false;
     }
-    
+
     return true;
 }
