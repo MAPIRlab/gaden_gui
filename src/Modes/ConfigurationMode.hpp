@@ -38,6 +38,7 @@ private:
         // ImGui::Text("%s", label);
         for (size_t i = 0; i < models.size(); i++)
         {
+            ImGui::VerticalSpace(5);
             ImGui::PushID(i);
             gaden::Model3D& model = models.at(i);
 
@@ -69,6 +70,8 @@ private:
                 ImGui::PopStyleColor();
             }
             ImGui::PopID();
+            ImGui::VerticalSpace(5);
+            ImGui::Separator();
         }
 
         if (ImGui::Button("Add models"))
