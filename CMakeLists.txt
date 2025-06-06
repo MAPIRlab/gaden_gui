@@ -17,6 +17,8 @@ add_executable(gaden_gui
     src/main.cpp
     src/Application.cpp
     src/Project.cpp
+
+    src/Modes/ConfigurationMode.cpp
 )
 
 target_link_libraries(gaden_gui

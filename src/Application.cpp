@@ -10,11 +10,14 @@ void Application::Run()
     AmentImgui imgui;
     imgui.Setup(nullptr,
                 "Gaden",
-                700,
-                700,
-                imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
+                900,
+                900,
+                imgui.FlagsFixedLayout());
 
-    ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_VariableFont, ImGui::Fonts::Roboto_VariableFont_size, 17.f);
+    Fonts::body = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 18.f);
+    Fonts::header = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 16.f);
+    Fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Revalia_Regular, ImGui::Fonts::Revalia_Regular_size, 125.f);
+    ImGui::GetIO().Fonts->Build();
 
     auto defaultMode = std::make_shared<DefaultMode>();
     PushMode(defaultMode);
@@ -22,11 +25,19 @@ void Application::Run()
     while (!shouldClose && !imgui.ShouldClose())
     {
         imgui.StartFrame();
-        imgui.SetNextWindowFullscreen();
+        ImGui::PushFont(Fonts::body);
 
-        ImGui::Begin("Main");
-        modeStack.top()->OnGUI();
+        imgui.SetNextWindowFullscreen();
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Background);
+        ImGui::Begin("Main", NULL, imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
+        {
+            DrawHeader();
+            ImGui::VerticalSpace(10.f);
+            modeStack.top()->OnGUI();
+        }
         ImGui::End();
+        ImGui::PopStyleColor();
+        ImGui::PopFont();
 
         imgui.Render();
         std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -60,4 +71,21 @@ void Application::PopMode()
 std::shared_ptr<Mode> Application::GetCurrentMode()
 {
     return modeStack.top();
+}
+
+void Application::DrawHeader()
+{
+    ImGui::PushFont(Fonts::header);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Header);
+    DrawInChildSpanHorizontal("header",
+                              {
+                                  ImGui::VerticalSpace(10.f);
+                                  ImGui::HorizontalSpace(10.f);
+                                  ImGui::Text("%s", fmt::format("GadenGUI v{}.{}", 0, 1).c_str());
+                                  ImGui::HorizontalSpace(10.f);
+                                  ImGui::Text("%s", fmt::format("Gaden v{}.{}", gaden::version_major, gaden::version_minor).c_str());
+                                  ImGui::VerticalSpace(10.f);
+                              });
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
 }

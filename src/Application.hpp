@@ -17,6 +17,9 @@ public:
     std::shared_ptr<Project> project;
 
 private:
+    void DrawHeader();
+
+private:
     std::stack<std::shared_ptr<Mode>> modeStack;
 };
 

@@ -22,8 +22,13 @@ class DefaultMode : public Mode
 
     void OnGUI() override
     {
-        ImGui::Text("%s", fmt::format("GadenGUI v{}.{}", 0, 1).c_str());
-        ImGui::Dummy(ImVec2(0, 30.f));
+        ImGui::VerticalSpace(50);
+        ImGui::PushFont(Fonts::logo);
+        ImGui::TextCenteredOnLine("gaden");
+        ImGui::PopFont();
+
+        ImGui::VerticalSpace(105);
+        ImGui::Separator();
 
         if (ImGui::ButtonCenteredOnLine("Load Existing Gaden Project"))
         {

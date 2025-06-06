@@ -29,22 +29,21 @@ public:
 
     void OnGUI() override
     {
-        ImGui::Text("Project: '%s'", g_app->project->GetRoot().c_str());
+        ImGui::TextCenteredOnLine(fmt::format("Project: '{}'", g_app->project->GetRoot()).c_str());
+        ImGui::Separator();
         ImGui::VerticalSpace(10);
 
         for (auto& [name, config] : g_app->project->configurations)
         {
             std::string buttonText = fmt::format("Open configuration {}", config.GetName());
-            ImGui::HorizontalSpace(20);
-            if (ImGui::Button(buttonText.c_str()))
+            if (ImGui::ButtonCenteredOnLine(buttonText.c_str()))
             {
                 g_app->PushMode(std::make_shared<ConfigurationMode>(config));
             }
         }
 
-        ImGui::HorizontalSpace(20);
         ImGui::PushStyleColor(ImGuiCol_Button, Colors::CreateNew);
-        if (ImGui::Button("Create new configuration"))
+        if (ImGui::ButtonCenteredOnLine("Create new configuration"))
         {
             std::string name = Utils::TextInput("Create new configuration", "Configuration name");
             if (name == "")
@@ -62,10 +61,9 @@ public:
         ImGui::PopStyleColor();
 
         ImGui::VerticalSpace(20);
-        ImGui::HorizontalSpace(20);
 
         ImGui::PushStyleColor(ImGuiCol_Button, Colors::Back);
-        if (ImGui::Button("Back"))
+        if (ImGui::ButtonCenteredOnLine("Back"))
         {
             g_app->PopMode();
         }
