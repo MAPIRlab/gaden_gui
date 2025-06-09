@@ -3,6 +3,7 @@
 #include "ament_imgui/ament_imgui.h"
 #include "ament_imgui/fonts.hpp"
 #include <chrono>
+#include <gaden/internal/Time.hpp>
 #include <thread>
 
 void Application::Run()
@@ -25,8 +26,15 @@ void Application::Run()
     auto defaultMode = std::make_shared<DefaultMode>();
     PushMode(defaultMode);
 
+    gaden::Utils::Time::Clock clock;
+    gaden::Utils::Time::TimePoint lastIteration = clock.now();
     while (!shouldClose && !imgui.ShouldClose())
     {
+        // calculate deltaTime
+        deltaT = gaden::Utils::Time::toSeconds(clock.now()-lastIteration);
+        lastIteration = clock.now();
+        
+        //start rendering
         imgui.StartFrame();
         ImGui::PushFont(Fonts::body);
 

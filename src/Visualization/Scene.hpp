@@ -1,11 +1,15 @@
 #pragma once
+#include "Visualization/Camera.hpp"
+#include "Visualization/RenderModel.hpp"
+#include "Visualization/Shader.hpp"
 #include <gaden/internal/Triangle.hpp>
 #include <glad/include/glad/glad.h>
+#include <optional>
 
 class Scene
 {
 public:
-    Scene(std::vector<std::vector<gaden::Triangle>> const& models);
+    Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors);
     void Render();
     bool active = false;
 
@@ -19,16 +23,13 @@ private:
     void bind_framebuffer();
 
 private:
-    std::vector<float> vertexArray;
-    std::vector<uint32_t> triangleArray;
 
-    GLuint VAO; // vertex array object
-    GLuint VBO; // vetex buffer object
-    GLuint EBO; // element buffer object
-
+    std::vector<RenderModel> renderModels;
     GLuint FBO; // frame buffer object
     GLuint RBO; // render buffer object
     GLuint texture_id;
     
-    GLuint shader;
+    std::optional<Shader> shader;
+
+    Camera camera;
 };

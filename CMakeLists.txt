@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(gaden_gui)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-glldb -O0")
@@ -19,11 +19,12 @@ add_executable(gaden_gui
     src/main.cpp
     src/Application.cpp
     src/Project.cpp
-
     src/Modes/ConfigurationMode.cpp
+
     src/Visualization/Scene.cpp
     src/glad/src/glad.c
-)
+    src/Visualization/Camera.cpp
+    )
 
 target_link_libraries(gaden_gui
     gaden

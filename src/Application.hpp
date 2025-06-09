@@ -11,6 +11,7 @@ public:
     void PushMode(std::shared_ptr<Mode> mode);
     void PopMode();
     std::shared_ptr<Mode> GetCurrentMode();
+    float GetDeltaTime() { return deltaT; }
 
 public:
     bool shouldClose = false;
@@ -21,6 +22,7 @@ private:
 
 private:
     std::stack<std::shared_ptr<Mode>> modeStack;
+    float deltaT = 0;
 };
 
 inline std::unique_ptr<Application> g_app;

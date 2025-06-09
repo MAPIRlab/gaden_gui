@@ -5,6 +5,7 @@
 #include "Utils.hpp"
 #include "Visualization/Scene.hpp"
 #include "gaden/Preprocessing.hpp"
+#include "gaden/internal/STL.hpp"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <regex>
@@ -45,19 +46,32 @@ void ConfigurationMode::OnGUI()
     if (ImGui::Button("Select from view"))
     {
         std::vector<std::vector<gaden::Triangle>> models;
-        models.push_back({});
-        models[0] = {
-            // first triangle
-            gaden::Triangle({0.5f, 0.5f, 0.0f},  // top right
-                            {0.5f, -0.5f, 0.0f}, // bottom right
-                            {-0.5f, 0.5f, 0.0f}  // top left
-                            ),
-            // second triangle
-            gaden::Triangle({0.5f, -0.5f, 0.0f},  // bottom right
-                            {-0.5f, -0.5f, 0.0f}, // bottom left
-                            {-0.5f, 0.5f, 0.0f}   // top left
-                            )};
-        scene = Scene(models);
+        std::vector<gaden::Color> colors;
+        for (auto const& model : configMetadata.envModels)
+        {
+            models.push_back(gaden::ParseSTLFile(model));
+            colors.push_back(model.color);
+        }
+        for (auto const& model : configMetadata.outletModels)
+        {
+            models.push_back(gaden::ParseSTLFile(model));
+            colors.push_back(model.color);
+        }
+
+        // models.push_back({});
+        // models[0] = {
+        //     // first triangle
+        //     gaden::Triangle({0.5f, 0.5f, -1.0f},  // top right
+        //                     {0.5f, -0.5f, -1.0f}, // bottom right
+        //                     {-0.5f, 0.5f, -1.0f}  // top left
+        //                     ),
+        //     // second triangle
+        //     gaden::Triangle({0.5f, -0.5f, -1.0f},  // bottom right
+        //                     {-0.5f, -0.5f, -1.0f}, // bottom left
+        //                     {-0.5f, 0.5f, -1.0f}   // top left
+        //                     )};
+
+        scene = Scene(models, colors);
         scene->active = true;
     }
 
