@@ -12,12 +12,15 @@ void Application::Run()
                 "Gaden",
                 900,
                 900,
-                imgui.FlagsFixedLayout());
+                imgui.FlagsFixedLayout() | ImGuiConfigFlags_ViewportsEnable); // enable multi-viewports so we can render the geometry on a popup window!
 
-    Fonts::body = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 18.f);
-    Fonts::header = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 16.f);
-    Fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Revalia_Regular, ImGui::Fonts::Revalia_Regular_size, 125.f);
-    ImGui::GetIO().Fonts->Build();
+    // load fonts
+    {
+        Fonts::body = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 18.f);
+        Fonts::header = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 16.f);
+        Fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Revalia_Regular, ImGui::Fonts::Revalia_Regular_size, 125.f);
+        ImGui::GetIO().Fonts->Build();
+    }
 
     auto defaultMode = std::make_shared<DefaultMode>();
     PushMode(defaultMode);

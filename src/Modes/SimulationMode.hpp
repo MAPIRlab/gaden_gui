@@ -1,6 +1,10 @@
 #pragma once
+#include "Application.hpp"
+#include "ImGuiUtils.hpp"
 #include "Modes/ConfigurationMode.hpp"
 #include "Modes/Mode.hpp"
+#include "Utils.hpp"
+#include "imgui.h"
 #include <atomic>
 #include <gaden/RunningSimulation.hpp>
 #include <thread>
@@ -11,7 +15,10 @@ public:
     SimulationMode(ConfigurationMode& _configMode,
                    gaden::RunningSimulation::Parameters& _params,
                    std::string_view _name)
-        : configMode(_configMode), params(_params), name(_name) {}
+        : configMode(_configMode), params(_params), name(_name)
+    {
+        params.saveDataDirectory = configMode.configMetadata.GetSimulationFilePath(name).parent_path();
+    }
 
     void OnPush() override
     {}

@@ -1,6 +1,12 @@
 #include "ConfigurationMode.hpp"
+#include "Application.hpp"
+#include "ImGuiUtils.hpp"
 #include "SimulationListMode.hpp"
+#include "Utils.hpp"
+#include "Visualization/Scene.hpp"
 #include "gaden/Preprocessing.hpp"
+#include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include <regex>
 
 void ConfigurationMode::OnGUI()
@@ -11,7 +17,6 @@ void ConfigurationMode::OnGUI()
     ImGui::VerticalSpace(10);
 
     ImGui::InputFloat("Cell size", &configMetadata.cellSize, 0.0f, 0.0f, "%.2f");
-    ImGui::DragFloat3("Empty point", &configMetadata.emptyPoint.x, 0.05f, 0.0f, 0.0f, "%.2f");
     ImGui::Checkbox("Uniform Wind", &configMetadata.uniformWind);
     ImGui::InputText("Unprocessed Wind Files", &configMetadata.unprocessedWindFiles);
     ImGui::SameLine();
@@ -35,6 +40,29 @@ void ConfigurationMode::OnGUI()
     if (ImGui::CollapsingHeader("Outlet Models"))
         ModelsList(configMetadata.outletModels, "Outlet Models");
 
+    ImGui::DragFloat3("Empty point", &configMetadata.emptyPoint.x, 0.05f, 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine();
+    if (ImGui::Button("Select from view"))
+    {
+        std::vector<std::vector<gaden::Triangle>> models;
+        models.push_back({});
+        models[0] = {
+            // first triangle
+            gaden::Triangle({0.5f, 0.5f, 0.0f},  // top right
+                            {0.5f, -0.5f, 0.0f}, // bottom right
+                            {-0.5f, 0.5f, 0.0f}  // top left
+                            ),
+            // second triangle
+            gaden::Triangle({0.5f, -0.5f, 0.0f},  // bottom right
+                            {-0.5f, -0.5f, 0.0f}, // bottom left
+                            {-0.5f, 0.5f, 0.0f}   // top left
+                            )};
+        scene = Scene(models);
+        scene->active = true;
+    }
+
+    if (scene && scene->active)
+        scene->Render();
     //------------------------
 
     ImGui::VerticalSpace(30);
@@ -79,4 +107,55 @@ void ConfigurationMode::OnGUI()
         g_app->PopMode();
     }
     ImGui::PopStyleColor();
+}
+
+void ConfigurationMode::ModelsList(std::vector<gaden::Model3D>& models, const char* label)
+{
+    ImGui::PushID(label);
+    // ImGui::Text("%s", label);
+    for (size_t i = 0; i < models.size(); i++)
+    {
+        ImGui::VerticalSpace(5);
+        ImGui::PushID(i);
+        gaden::Model3D& model = models.at(i);
+
+        // path
+        std::string temp = model.path.string();
+        ImGui::InputText("Path", &temp);
+        ImGui::SameLine();
+        if (ImGui::Button("Find"))
+            temp = Utils::FileDialog("STL models | *.stl", model.path);
+        model.path = temp;
+        ImGui::SameLine();
+        if (ImGui::Button("Remove"))
+        {
+            models.erase(models.begin() + i);
+            i--;
+            ImGui::PopID();
+            continue;
+        }
+
+        // color
+        ImGui::SetNextItemWidth(200);
+        ImGui::ColorEdit4("color", &model.color.r, ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
+        if (i > 0)
+        {
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, Colors::Secondary);
+            if (ImGui::Button("Copy previous color"))
+                model.color = models.at(i - 1).color;
+            ImGui::PopStyleColor();
+        }
+        ImGui::PopID();
+        ImGui::VerticalSpace(5);
+        ImGui::Separator();
+    }
+
+    if (ImGui::Button("Add models"))
+    {
+        auto paths = Utils::MultiFileDialog("STL models | *.stl", g_app->project->rootDirectory / "");
+        for (auto& path : paths)
+            models.push_back({.path = path});
+    }
+    ImGui::PopID();
 }
