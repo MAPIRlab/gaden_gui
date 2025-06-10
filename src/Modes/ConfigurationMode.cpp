@@ -43,37 +43,8 @@ void ConfigurationMode::OnGUI()
 
     ImGui::DragFloat3("Empty point", &configMetadata.emptyPoint.x, 0.05f, 0.0f, 0.0f, "%.2f");
     ImGui::SameLine();
-    if (ImGui::Button("Select from view"))
-    {
-        std::vector<std::vector<gaden::Triangle>> models;
-        std::vector<gaden::Color> colors;
-        for (auto const& model : configMetadata.envModels)
-        {
-            models.push_back(gaden::ParseSTLFile(model));
-            colors.push_back(model.color);
-        }
-        for (auto const& model : configMetadata.outletModels)
-        {
-            models.push_back(gaden::ParseSTLFile(model));
-            colors.push_back(model.color);
-        }
-
-        // models.push_back({});
-        // models[0] = {
-        //     // first triangle
-        //     gaden::Triangle({0.5f, 0.5f, -1.0f},  // top right
-        //                     {0.5f, -0.5f, -1.0f}, // bottom right
-        //                     {-0.5f, 0.5f, -1.0f}  // top left
-        //                     ),
-        //     // second triangle
-        //     gaden::Triangle({0.5f, -0.5f, -1.0f},  // bottom right
-        //                     {-0.5f, -0.5f, -1.0f}, // bottom left
-        //                     {-0.5f, 0.5f, -1.0f}   // top left
-        //                     )};
-
-        scene = Scene(models, colors);
-        scene->active = true;
-    }
+    if (ImGui::Button("View in scene"))
+        CreateScene();
 
     if (scene && scene->active)
         scene->Render(configMetadata.emptyPoint);
@@ -172,4 +143,22 @@ void ConfigurationMode::ModelsList(std::vector<gaden::Model3D>& models, const ch
             models.push_back({.path = path});
     }
     ImGui::PopID();
+}
+
+void ConfigurationMode::CreateScene()
+{
+    std::vector<std::vector<gaden::Triangle>> models;
+    std::vector<gaden::Color> colors;
+    for (auto const& model : configMetadata.envModels)
+    {
+        models.push_back(gaden::ParseSTLFile(model));
+        colors.push_back(model.color);
+    }
+    for (auto const& model : configMetadata.outletModels)
+    {
+        models.push_back(gaden::ParseSTLFile(model));
+        colors.push_back(model.color);
+    }
+    scene = Scene(models, colors);
+    scene->active = true;
 }

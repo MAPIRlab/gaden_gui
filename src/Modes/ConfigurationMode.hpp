@@ -23,9 +23,14 @@ public:
     {}
 
     void OnLoseFocus() override
-    {}
+    {
+        if (scene)
+            scene->active = false;
+    }
 
     void OnGUI() override;
+
+    void CreateScene();
 
 private:
     void ModelsList(std::vector<gaden::Model3D>& models, const char* label);

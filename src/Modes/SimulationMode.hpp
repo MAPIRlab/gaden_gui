@@ -44,7 +44,13 @@ public:
         {
             // clang-format off
             // GasType gasType = GasType::unknown;
-            ImGui::DragFloat3("Source Position",        &params.sourcePosition.x);
+            ImGui::DragFloat3("Source Position",        &params.sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
+            ImGui::SameLine();
+            if (ImGui::Button("View in scene"))
+                configMode.CreateScene();
+            if (configMode.scene && configMode.scene->active)
+                configMode.scene->Render(params.sourcePosition);
+
             ImGui::InputFloat("Delta Time",             &params.deltaTime); 
             ImGui::InputFloat("Wind iteration deltaT",  &params.windIterationDeltaTime); 
             ImGui::InputFloat("Temperature (K)",        &params.temperature);                       
