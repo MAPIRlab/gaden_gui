@@ -59,12 +59,14 @@ Scene::Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vecto
     for (size_t i = 0; i < models.size(); i++)
         renderModels.push_back({models[i], colors[i]});
 
+    sphereMarker = RenderModel::CreateSphere(0.2f, 20, 20, gaden::Color{1, 0, 1, 1});
+
     shader.emplace(vertexShaderSource, fragmentShaderSource);
 
     create_framebuffer();
 }
 
-void Scene::Render()
+void Scene::Render(glm::vec3 markerPosition)
 {
     ImGui::SetNextWindowSize(windowSize);
     ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -82,13 +84,13 @@ void Scene::Render()
     shader->use();
 
     // calculate the camera matrices and send them to the shader
-    glm::mat4 projection = glm::perspective(glm::radians(60.f), (float)window_width / (float)window_height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(60.f), 1.f, 0.1f, 100.0f);
     projection[1] *= -1;
     shader->setMat4("projection", projection);
 
     glm::mat4 view = camera.GetViewMatrix();
     shader->setMat4("view", view);
-    shader->setVec3("lightDir", glm::vec3(0.3, -1, 0.5));
+    shader->setVec3("lightDir", glm::vec3(0.3, 1, 0.5));
 
     // clear the buffer
     glClearColor(0.2f, 0.4f, 0.7f, 1.f);
@@ -100,9 +102,11 @@ void Scene::Render()
     for (auto const& model : renderModels)
         model.Draw(*shader);
 
+    sphereMarker.transform.position = VizUtils::toGL(markerPosition);
+    sphereMarker.Draw(*shader);
+    // cleanup
     glBindVertexArray(0);
     glUseProgram(0);
-
     unbind_framebuffer();
 
     ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));

@@ -14,7 +14,7 @@ struct Camera
 
     glm::mat4 GetViewMatrix()
     {
-        return transform.GetTransformMatrix();
+        return glm::lookAt(transform.position, transform.position+transform.forward(), transform.up());
     }
 
 private:

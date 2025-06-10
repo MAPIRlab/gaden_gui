@@ -76,7 +76,7 @@ void ConfigurationMode::OnGUI()
     }
 
     if (scene && scene->active)
-        scene->Render();
+        scene->Render(configMetadata.emptyPoint);
     //------------------------
 
     ImGui::VerticalSpace(30);

@@ -10,7 +10,7 @@ class Scene
 {
 public:
     Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors);
-    void Render();
+    void Render(glm::vec3 markerPosition);
     bool active = false;
 
 private:
@@ -25,6 +25,8 @@ private:
 private:
 
     std::vector<RenderModel> renderModels;
+    RenderModel sphereMarker;
+    
     GLuint FBO; // frame buffer object
     GLuint RBO; // render buffer object
     GLuint texture_id;

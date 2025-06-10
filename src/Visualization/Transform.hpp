@@ -1,7 +1,8 @@
 #pragma once
 
-#include "glm/gtc/quaternion.hpp"
 #include "glm/vec3.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 struct Transform
 {
@@ -25,6 +26,9 @@ struct Transform
 
     glm::mat4 GetTransformMatrix() const
     {
-        return glm::lookAt(position, position + forward(), up());
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, position);
+        model = glm::toMat4(rotation) * model;
+        return model;
     }
 };
