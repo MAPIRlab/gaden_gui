@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Visualization/Shader.hpp"
+#include "Visualization/Transform.hpp"
 #include "Visualization/Utils.hpp"
 #include "gaden/datatypes/Model3D.hpp"
 #include "gaden/internal/Triangle.hpp"
@@ -17,6 +19,7 @@ class RenderModel
 public:
     std::vector<Vertex> vertexArray;
     std::vector<uint32_t> triangleArray;
+    Transform transform;
 
     RenderModel(std::vector<gaden::Triangle> const& triangles, gaden::Color color)
     {
@@ -62,8 +65,9 @@ public:
         glBindVertexArray(0);
     }
 
-    void Draw() const
+    void Draw(Shader const& shader) const
     {
+        shader.setMat4("model", transform.GetTransformMatrix());
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, triangleArray.size(), GL_UNSIGNED_INT, 0);
     }

@@ -20,13 +20,14 @@ layout (location = 2) in vec3 color;
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 model;
 
 out vec4 vertexColor; 
 out vec3 vertexNormal;
 
 void main()
 {
-	gl_Position = projection * view * vec4(aPos, 1.0f);
+	gl_Position = projection * view * model * vec4(aPos, 1.0f);
     vertexColor = vec4(color,1);
     vertexNormal = normal;
 })";
@@ -97,7 +98,7 @@ void Scene::Render()
 
     // draw
     for (auto const& model : renderModels)
-        model.Draw();
+        model.Draw(*shader);
 
     glBindVertexArray(0);
     glUseProgram(0);
