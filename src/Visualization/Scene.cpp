@@ -82,6 +82,7 @@ void Scene::Render()
 
     // calculate the camera matrices and send them to the shader
     glm::mat4 projection = glm::perspective(glm::radians(60.f), (float)window_width / (float)window_height, 0.1f, 100.0f);
+    projection[1] *= -1;
     shader->setMat4("projection", projection);
 
     glm::mat4 view = camera.GetViewMatrix();
