@@ -1,14 +1,14 @@
 #include "Application.hpp"
 #include "Modes/DefaultMode.hpp"
-#include "ament_imgui/ament_imgui.h"
-#include "ament_imgui/fonts.hpp"
+#include "imgui_gl/imgui_gl.h"
+#include "imgui_gl/fonts.hpp"
 #include <chrono>
 #include <gaden/internal/Time.hpp>
 #include <thread>
 
 void Application::Run()
 {
-    AmentImgui imgui;
+    ImguiGL imgui;
     imgui.Setup(nullptr,
                 "Gaden",
                 900,

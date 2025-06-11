@@ -7,8 +7,10 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -fno-omit-frame-pointer")
 set(CMAKE_CXX_FLAGS_DEBUG "-glldb -O0")
 
-add_subdirectory(third_party/gaden_core)
-add_subdirectory(third_party/ament_imgui/ament_imgui)
+include(FetchContent)
+set(FETCHCONTENT_QUIET FALSE)
+include(cmake/gaden.cmake)
+include(cmake/ament_imgui.cmake)
 
 include_directories(
     src
@@ -28,5 +30,5 @@ add_executable(gaden_gui
 
 target_link_libraries(gaden_gui
     gaden
-    ament_imgui
+    imgui_gl
 )
