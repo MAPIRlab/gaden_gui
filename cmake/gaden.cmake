@@ -1,5 +1,7 @@
+# if we already have gaden, we're done
+# otherwise, download it from git
 find_package(gaden QUIET)
-if(NOT gaden)
+if(NOT TARGET gaden)
     FetchContent_Declare(
         gaden
         GIT_REPOSITORY git@github.com:MAPIRlab/gaden_core.git
