@@ -1,6 +1,0 @@
-[submodule "gaden_core"]
-	path = third_party/gaden_core
-	url = git@github.com:PepeOjeda/gaden_core.git
-[submodule "third_party/ament_imgui"]
-	path = third_party/ament_imgui
-	url = git@github.com:PepeOjeda/ament_imgui.git
