@@ -12,5 +12,7 @@ public:
 
 public:
     std::map<std::string, gaden::EnvironmentConfigMetadata> configurations;
+
+private:
     std::filesystem::path rootDirectory;
 };

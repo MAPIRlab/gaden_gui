@@ -23,7 +23,7 @@ void ConfigurationMode::OnGUI()
     ImGui::SameLine();
     if (ImGui::Button("Find"))
     {
-        std::filesystem::path path = Utils::FileDialog("OpenFOAM vector clouds | *.csv", g_app->project->rootDirectory / "");
+        std::filesystem::path path = Utils::FileDialog("OpenFOAM vector clouds | *.csv", g_app->project->GetRoot() / "");
         std::cmatch m;
         if (std::regex_match(path.c_str(), m, std::regex("(.*)_\\d+.csv")))
             configMetadata.unprocessedWindFiles = m[1];
@@ -39,7 +39,10 @@ void ConfigurationMode::OnGUI()
         ImGui::VerticalSpace(20);
     }
     if (ImGui::CollapsingHeader("Outlet Models"))
+    {
         ModelsList(configMetadata.outletModels, "Outlet Models");
+        ImGui::VerticalSpace(20);
+    }
 
     ImGui::DragFloat3("Empty point", &configMetadata.emptyPoint.x, 0.05f, 0.0f, 0.0f, "%.2f");
     ImGui::SameLine();
@@ -60,7 +63,7 @@ void ConfigurationMode::OnGUI()
     ImGui::PushStyleColor(ImGuiCol_Button, Colors::Save);
     if (ImGui::Button("Save Changes"))
     {
-        configMetadata.WriteConfigYAML();
+        configMetadata.WriteConfigYAML(g_app->project->GetRoot());
     }
 
     //------------------------
@@ -77,12 +80,10 @@ void ConfigurationMode::OnGUI()
     }
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(!config);
     if (ImGui::Button("Go to 'Simulations'"))
     {
         g_app->PushMode(std::make_shared<SimulationListMode>(*this));
     }
-    ImGui::EndDisabled();
     ImGui::PopStyleColor();
 
     //------------------------
@@ -138,7 +139,7 @@ void ConfigurationMode::ModelsList(std::vector<gaden::Model3D>& models, const ch
 
     if (ImGui::Button("Add models"))
     {
-        auto paths = Utils::MultiFileDialog("STL models | *.stl", g_app->project->rootDirectory / "");
+        auto paths = Utils::MultiFileDialog("STL models | *.stl", g_app->project->GetRoot() / "");
         for (auto& path : paths)
             models.push_back({.path = path});
     }

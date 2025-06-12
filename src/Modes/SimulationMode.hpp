@@ -30,7 +30,10 @@ public:
     {}
 
     void OnLoseFocus() override
-    {}
+    {
+        if (configMode.scene)
+            configMode.scene->active = false;
+    }
 
     void OnGUI() override
     {
@@ -87,6 +90,11 @@ public:
                 runSimThread = std::nullopt;
             }
         }
+        else if(!configMode.config)
+        {
+            ImGui::TextColored(Colors::AsVec(Colors::ErrorText), "Need to run preprocessing before simulations!");
+            ImGui::Text("");
+        }
         else
         {
             // keep the same spacing
@@ -98,22 +106,26 @@ public:
         {
             //------------------------
             ImGui::PushStyleColor(ImGuiCol_Button, Colors::Save);
-            if (ImGui::Button("Save Changes"))
             {
-                params.WriteToYAML(configMode.configMetadata.GetSimulationFilePath(name));
-            }
+                if (ImGui::Button("Save Changes"))
+                {
+                    params.WriteToYAML(configMode.configMetadata.GetSimulationFilePath(name));
+                }
 
-            //------------------------
-            ImGui::SameLine();
-            if (ImGui::Button("Run Simulation"))
-            {
-                simDone = false;
-                runSimThread.emplace([this]()
-                                     {
-                                         Run();
-                                     });
-            }
+                //------------------------
+                ImGui::SameLine();
 
+                ImGui::BeginDisabled(!configMode.config);
+                if (ImGui::Button("Run Simulation"))
+                {
+                    simDone = false;
+                    runSimThread.emplace([this]()
+                                         {
+                                             Run();
+                                         });
+                }
+                ImGui::EndDisabled();
+            }
             ImGui::PopStyleColor();
         }
 
@@ -128,8 +140,7 @@ public:
     }
 
 private:
-    void
-    Run()
+    void Run()
     {
         try
         {

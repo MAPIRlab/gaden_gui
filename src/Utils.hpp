@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fmt/format.h>
+#include <gaden/internal/PathUtils.hpp>
 #include <vector>
 
 namespace Utils
@@ -84,4 +85,5 @@ namespace Utils
         std::string command = fmt::format("zenity --warning --title=\"Warning!\" --text=\"{}\"", msg.data());
         internal::Zenity(command.c_str());
     }
+
 } // namespace Utils

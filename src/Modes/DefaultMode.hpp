@@ -33,7 +33,7 @@ class DefaultMode : public Mode
 
         if (ImGui::ButtonCenteredOnLine("Load Existing Gaden Project"))
         {
-            auto path = Utils::DirectoryDialog();
+            auto path = Utils::DirectoryDialog(std::filesystem::current_path() / "");
             if (path.is_absolute() && std::filesystem::exists(path))
             {
                 auto project = std::make_shared<Project>(path);
@@ -47,7 +47,7 @@ class DefaultMode : public Mode
         ImGui::PushStyleColor(ImGuiCol_Button, Colors::CreateNew);
         if (ImGui::ButtonCenteredOnLine("Create New Gaden Project"))
         {
-            auto path = Utils::DirectoryDialog();
+            auto path = Utils::DirectoryDialog(std::filesystem::current_path() / "");
             if (path.is_absolute() && std::filesystem::exists(path) && std::filesystem::is_directory(path))
             {
                 auto project = std::make_shared<Project>(path);
