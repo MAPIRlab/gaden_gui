@@ -17,7 +17,7 @@ public:
                    std::string_view _name)
         : configMode(_configMode), params(_params), name(_name)
     {
-        params.saveDataDirectory = configMode.configMetadata.GetSimulationFilePath(name).parent_path();
+        params.saveDataDirectory = configMode.configMetadata.GetSimulationFilePath(name).parent_path() / "result";
     }
 
     void OnPush() override
