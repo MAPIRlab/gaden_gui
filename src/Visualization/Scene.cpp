@@ -135,7 +135,8 @@ void Scene::DrawControlsBox()
                       "A - Move left\n"
                       "D - Move right\n"
                       "Q - Move up\n"
-                      "E - Move down";
+                      "E - Move down\n"
+                      "LShift - Speed up";
 
     float padding = 10;
     ImVec2 offset;

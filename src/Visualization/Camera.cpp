@@ -53,9 +53,5 @@ void Camera::HandleInput(float deltaTime)
     glm::quat pitchQuat(glm::vec3(-mouseDelta.y * rotationSpeed * deltaTime, 0, 0));
     glm::quat yawQuat(glm::vec3(0, -mouseDelta.x * rotationSpeed * deltaTime, 0));
 
-    transform.rotation = yawQuat * transform.rotation * pitchQuat; // todo check the yaw. Maybe it should be applied before the local rotation?
-
-    // GADEN_INFO("Position:{}", VizUtils::fromGL(position));
-    // GADEN_INFO("Forward:{}", VizUtils::fromGL(forward()));
-    // GADEN_INFO("Up:{}", VizUtils::fromGL(up()));
+    transform.rotation = yawQuat * transform.rotation * pitchQuat;
 }
