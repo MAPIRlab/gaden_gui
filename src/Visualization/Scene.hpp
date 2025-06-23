@@ -21,6 +21,7 @@ private:
     void unbind_framebuffer();
     void rescale_framebuffer(float width, float height);
     void bind_framebuffer();
+    void DrawControlsBox();
 
 private:
 

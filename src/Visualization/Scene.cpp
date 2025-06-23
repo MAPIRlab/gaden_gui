@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include "Application.hpp"
 #include "GLFW/glfw3.h"
+#include "ImGuiUtils.hpp"
 #include "imgui.h"
 #include <iostream>
 
@@ -107,6 +108,8 @@ void Scene::Render(glm::vec3 markerPosition)
     unbind_framebuffer();
 
     ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
+    DrawControlsBox();
+
     ImGui::End();
 }
 
@@ -120,6 +123,40 @@ void Scene::SetCameraInfoShader(Shader const& s)
     glm::mat4 view = camera.GetViewMatrix();
     s.setMat4("view", view);
     s.setVec3("lightDir", glm::vec3(0.3, 1, 0.5));
+}
+
+void Scene::DrawControlsBox()
+{
+    ImGui::SetCursorPos({0, 0});
+    const char* msg = "Hold RMB to control camera\n"
+                      "Move mouse - rotate\n"
+                      "W - Move forward\n"
+                      "S - Move back\n"
+                      "A - Move left\n"
+                      "D - Move right\n"
+                      "Q - Move up\n"
+                      "E - Move down";
+
+    float padding = 10;
+    ImVec2 offset;
+    CalculateSize(offset,
+                  ImGui::VerticalSpace(padding);
+                  ImGui::HorizontalSpace(padding);
+                  ImGui::Text("%s", msg););
+
+    offset.x += 2 * padding;
+    offset.y += 2 * padding;
+
+    ImVec2 pos = {ImGui::GetContentRegionMax().x - offset.x, ImGui::GetContentRegionMax().y - offset.y};
+    ImGui::SetCursorPos(pos);
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, 0x8833281f);
+    ImGui::BeginChild("controls");
+    ImGui::VerticalSpace(padding);
+    ImGui::HorizontalSpace(padding);
+    ImGui::Text("%s", msg);
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
 }
 
 void Scene::create_framebuffer()

@@ -76,12 +76,16 @@ namespace ImGui
         ImGui::Dummy(ImVec2(0.f, space));
     }
 
-    inline void HelpMarker(const char* desc)
+    // set viewport to prevent the tooltip from becoming its own window
+    inline void HelpMarker(const char* desc, float hsize = 35.f, bool canLeaveViewport = false)
     {
+        if (!canLeaveViewport)
+            ImGui::SetNextWindowViewport(ImGui::GetWindowViewport()->ID);
+
         ImGui::TextDisabled("(?)");
         if (ImGui::BeginItemTooltip())
         {
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * hsize);
             ImGui::TextUnformatted(desc);
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
@@ -90,6 +94,7 @@ namespace ImGui
 
 #define CalculateSize(result, ...)                                                              \
     {                                                                                           \
+        ImGui::BeginDisabled(true);                                                             \
         ImVec2 cursorPos = ImGui::GetCursorPos();                                               \
         float alpha = ImGui::GetStyle().Alpha;                                                  \
                                                                                                 \
@@ -101,6 +106,7 @@ namespace ImGui
         result = ImGui::GetItemRectSize();                                                      \
         ImGui::GetStyle().Alpha = alpha;                                                        \
         ImGui::SetCursorPos(cursorPos);                                                         \
+        ImGui::EndDisabled();                                                                   \
     }
 
 #define DrawInChild(childID, ...)           \
