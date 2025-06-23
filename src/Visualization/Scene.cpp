@@ -49,6 +49,7 @@ void main()
 constexpr ImVec2 windowSize = ImVec2(800, 600);
 
 Scene::Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors)
+    : filamentsViz(*this)
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -59,9 +60,10 @@ Scene::Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vecto
     for (size_t i = 0; i < models.size(); i++)
         renderModels.push_back({models[i], colors[i]});
 
-    sphereMarker = RenderModel::CreateSphere(0.2f, 20, 20, gaden::Color{1, 0, 1, 1});
+    sphereMarker = RenderModel::CreateSphere(0.1f, 20, 20, gaden::Color{1, 0, 1, 1});
 
     shader.emplace(vertexShaderSource, fragmentShaderSource);
+    filamentsViz.SetUp();
 
     create_framebuffer();
 }
@@ -71,9 +73,9 @@ void Scene::Render(glm::vec3 markerPosition)
     ImGui::SetNextWindowSize(windowSize);
     ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    // currently unnecessary, we have a fixed size window!
     const float window_width = ImGui::GetContentRegionAvail().x;
     const float window_height = ImGui::GetContentRegionAvail().y;
+    // currently unnecessary, we have a fixed size window!
     //  rescale_framebuffer(window_width, window_height);
 
     camera.HandleInput(g_app->GetDeltaTime());
@@ -81,29 +83,24 @@ void Scene::Render(glm::vec3 markerPosition)
     // render into a framebuffer (texture), which will then be used by ImGui::Image
     bind_framebuffer();
 
-    shader->use();
-
-    // calculate the camera matrices and send them to the shader
-    glm::mat4 projection = glm::perspective(glm::radians(60.f), 1.f, 0.1f, 100.0f);
-    projection[1] *= -1;
-    shader->setMat4("projection", projection);
-
-    glm::mat4 view = camera.GetViewMatrix();
-    shader->setMat4("view", view);
-    shader->setVec3("lightDir", glm::vec3(0.3, 1, 0.5));
-
     // clear the buffer
-    glClearColor(0.2f, 0.4f, 0.7f, 1.f);
+    glClearColor(0.4f, 0.55f, 0.7f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
 
-    // draw
+    // draw scene geometry
+    shader->use();
+    SetCameraInfoShader(*shader);
     for (auto const& model : renderModels)
         model.Draw(*shader);
 
     sphereMarker.transform.position = VizUtils::toGL(markerPosition);
     sphereMarker.Draw(*shader);
+
+    // draw filaments (if present)
+    filamentsViz.Draw();
+
     // cleanup
     glBindVertexArray(0);
     glUseProgram(0);
@@ -111,6 +108,18 @@ void Scene::Render(glm::vec3 markerPosition)
 
     ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
     ImGui::End();
+}
+
+void Scene::SetCameraInfoShader(Shader const& s)
+{
+    // calculate the camera matrices and send them to the shader
+    glm::mat4 projection = glm::perspective(glm::radians(60.f), 1.f, 0.1f, 100.0f);
+    projection[1] *= -1;
+    s.setMat4("projection", projection);
+
+    glm::mat4 view = camera.GetViewMatrix();
+    s.setMat4("view", view);
+    s.setVec3("lightDir", glm::vec3(0.3, 1, 0.5));
 }
 
 void Scene::create_framebuffer()

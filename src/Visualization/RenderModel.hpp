@@ -3,7 +3,7 @@
 #include "Visualization/Shader.hpp"
 #include "Visualization/Transform.hpp"
 #include "Visualization/Utils.hpp"
-#include "gaden/datatypes/Model3D.hpp"
+#include "gaden/datatypes/Color.hpp"
 #include "gaden/internal/Triangle.hpp"
 #include <glad/include/glad/glad.h>
 

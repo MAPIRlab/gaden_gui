@@ -1,7 +1,7 @@
 #include "Application.hpp"
 #include "Modes/DefaultMode.hpp"
-#include "imgui_gl/imgui_gl.h"
 #include "imgui_gl/fonts.hpp"
+#include "imgui_gl/imgui_gl.h"
 #include <chrono>
 #include <gaden/internal/Time.hpp>
 #include <thread>
@@ -17,9 +17,13 @@ void Application::Run()
 
     // load fonts
     {
-        Fonts::body = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 18.f);
-        Fonts::header = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 16.f);
-        Fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Revalia_Regular, ImGui::Fonts::Revalia_Regular_size, 125.f);
+        // avoid an invalid free() on shutdown
+        ImFontConfig* cfg = new ImFontConfig();
+        cfg->FontDataOwnedByAtlas = false;
+
+        Fonts::body = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 18.f, cfg);
+        Fonts::header = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Roboto_Variable, ImGui::Fonts::Roboto_Variable_size, 16.f, cfg);
+        Fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ImGui::Fonts::Revalia_Regular, ImGui::Fonts::Revalia_Regular_size, 125.f, cfg);
         ImGui::GetIO().Fonts->Build();
     }
 
@@ -31,10 +35,10 @@ void Application::Run()
     while (!shouldClose && !imgui.ShouldClose())
     {
         // calculate deltaTime
-        deltaT = gaden::Utils::Time::toSeconds(clock.now()-lastIteration);
+        deltaT = gaden::Utils::Time::toSeconds(clock.now() - lastIteration);
         lastIteration = clock.now();
-        
-        //start rendering
+
+        // start rendering
         imgui.StartFrame();
         ImGui::PushFont(Fonts::body);
 

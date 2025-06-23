@@ -33,7 +33,7 @@ namespace Fonts
     inline ImFont* header;
 
     inline ImFont* logo;
-}
+} // namespace Fonts
 
 namespace ImGui
 {
@@ -74,6 +74,18 @@ namespace ImGui
     inline void VerticalSpace(float space)
     {
         ImGui::Dummy(ImVec2(0.f, space));
+    }
+
+    inline void HelpMarker(const char* desc)
+    {
+        ImGui::TextDisabled("(?)");
+        if (ImGui::BeginItemTooltip())
+        {
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(desc);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
     }
 
 #define CalculateSize(result, ...)                                                              \

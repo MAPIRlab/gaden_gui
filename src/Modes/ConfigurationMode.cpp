@@ -160,6 +160,6 @@ void ConfigurationMode::CreateScene()
         models.push_back(gaden::ParseSTLFile(model));
         colors.push_back(model.color);
     }
-    scene = Scene(models, colors);
+    scene.emplace(models, colors);
     scene->active = true;
 }

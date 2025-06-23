@@ -23,9 +23,10 @@ add_executable(gaden_gui
     src/Project.cpp
     src/Modes/ConfigurationMode.cpp
 
-    src/Visualization/Scene.cpp
     src/glad/src/glad.c
+    src/Visualization/Scene.cpp
     src/Visualization/Camera.cpp
+    src/Visualization/FilamentsViz.cpp
     )
 
 target_link_libraries(gaden_gui
