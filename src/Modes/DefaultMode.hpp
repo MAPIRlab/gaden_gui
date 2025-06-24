@@ -33,11 +33,11 @@ class DefaultMode : public Mode
 
         if (ImGui::ButtonCenteredOnLine("Load Existing Gaden Project"))
         {
-            auto path = Utils::DirectoryDialog(std::filesystem::current_path() / "");
+            auto path = Utils::FileDialog("Gaden project file '.gproj' | *.gproj", std::filesystem::current_path() / "");
             if (path.is_absolute() && std::filesystem::exists(path))
             {
-                auto project = std::make_shared<Project>(path);
-                if (project->ReadDirectory())
+                auto project = Project::LoadExisting(path);
+                if (project)
                     g_app->PushMode(std::make_shared<ProjectMode>(project));
                 else
                     Utils::DisplayError(fmt::format("'{}' is not the path of a valid gaden project", path));
@@ -50,11 +50,11 @@ class DefaultMode : public Mode
             auto path = Utils::DirectoryDialog(std::filesystem::current_path() / "");
             if (path.is_absolute() && std::filesystem::exists(path) && std::filesystem::is_directory(path))
             {
-                auto project = std::make_shared<Project>(path);
-                project->CreateTemplate();
-                project->ReadDirectory();
-
-                g_app->PushMode(std::make_shared<ProjectMode>(project));
+                auto project = Project::CreateNew(path);
+                if (project)
+                    g_app->PushMode(std::make_shared<ProjectMode>(project));
+                else
+                    Utils::DisplayError(fmt::format("Failed to create project at directory '{}'!", path));
             }
             else
                 Utils::DisplayError(fmt::format("Directory '{}' does not exist", path));

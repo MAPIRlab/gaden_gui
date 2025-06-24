@@ -98,7 +98,7 @@ void Application::DrawHeader()
                                   ImGui::HorizontalSpace(10.f);
                                   ImGui::Text("%s", fmt::format("GadenGUI v{}.{}", 0, 1).c_str());
                                   ImGui::HorizontalSpace(10.f);
-                                  ImGui::Text("%s", fmt::format("Gaden v{}.{}", gaden::version_major, gaden::version_minor).c_str());
+                                  ImGui::Text("%s", fmt::format("Gaden v{}.{}", gaden::versionMajor, gaden::versionMinor).c_str());
                                   ImGui::VerticalSpace(10.f);
                               });
     ImGui::PopStyleColor();
