@@ -80,13 +80,11 @@ bool Project::CreateTemplate()
     emitter << YAML::EndMap;
     projFile.close();
 
+    std::filesystem::remove_all(GetRoot() / configsDir);
     std::filesystem::path configPath = GetConfigurationPath("config1");
     std::filesystem::create_directories(configPath);
 
-    gaden::EnvironmentConfigMetadata config(configPath);
-    if (config.CreateTemplate())
-        configurations.insert({config.GetName(), config});
-    else
+    if (!gaden::EnvironmentConfigMetadata::CreateTemplate(configPath))
     {
         GADEN_ERROR("Failed to create sample configuration at '{}'", configPath);
         return false;

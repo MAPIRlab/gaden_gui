@@ -52,11 +52,12 @@ public:
                 name = "config";
             }
             auto path = g_app->project->GetConfigurationPath(name);
-            auto [iterator, inserted] = g_app->project->configurations.emplace(name, g_app->project->GetConfigurationPath(name));
-            gaden::EnvironmentConfigMetadata& config = iterator->second;
-            config.CreateTemplate();
+            gaden::EnvironmentConfigMetadata::CreateTemplate(path);
+            auto [iterator, inserted] = g_app->project->configurations.emplace(name, path);
+            auto& configuration = iterator->second;
+            configuration.ReadDirectory();
 
-            g_app->PushMode(std::make_shared<ConfigurationMode>(config));
+            g_app->PushMode(std::make_shared<ConfigurationMode>(configuration));
         }
         ImGui::PopStyleColor();
 

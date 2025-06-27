@@ -4,11 +4,16 @@
 #include "Modes/ConfigurationMode.hpp"
 #include "Modes/Mode.hpp"
 #include "Utils.hpp"
+#include "gaden/internal/Pointers.hpp"
 #include "imgui.h"
 #include <atomic>
 #include <gaden/RunningSimulation.hpp>
 #include <gaden/internal/Time.hpp>
 #include <thread>
+
+#include "gaden/datatypes/sources/BoxSource.hpp"
+#include "gaden/datatypes/sources/LineSource.hpp"
+#include "gaden/datatypes/sources/SphereSource.hpp"
 
 class SimulationMode : public Mode
 {
@@ -48,25 +53,57 @@ public:
         ImGui::VerticalSpace(10);
 
         if (configMode.scene && configMode.scene->active)
-            configMode.scene->Render(params.sourcePosition);
+            configMode.scene->Render(params.source->sourcePosition);
 
         ImGui::BeginDisabled(runSimThread.has_value());
         {
-            // clang-format off
-            // GasType gasType = GasType::unknown;
-            ImGui::DragFloat3("Source Position",        &params.sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
+            // GasType gasType = GasType::unknown; //TODO
+            static int type_selected = std::find(sourceTypeNames.begin(), sourceTypeNames.end(), params.source->Type()) - sourceTypeNames.begin();
+            ImGui::Combo("Source type", &type_selected, ConcatenatedNames().c_str());
+            {
+                if (type_selected == 0)
+                {
+                    if (!Is<gaden::PointSource>(params.source))
+                        params.source = std::make_shared<gaden::PointSource>();
+                }
+                else if (type_selected == 1)
+                {
+                    if (!Is<gaden::SphereSource>(params.source))
+                        params.source = std::make_shared<gaden::SphereSource>();
+                    float r = As<gaden::SphereSource>(params.source)->GetRadius();
+                    ImGui::DragFloat("Source radius", &r);
+                    As<gaden::SphereSource>(params.source)->SetRadius(r);
+                }
+                else if (type_selected == 2)
+                {
+                    if (!Is<gaden::BoxSource>(params.source))
+                        params.source = std::make_shared<gaden::BoxSource>();
+                    ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x);
+                }
+                else if (type_selected == 3)
+                {
+                    if (!Is<gaden::LineSource>(params.source))
+                        params.source = std::make_shared<gaden::LineSource>();
+                    ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x);
+                }
+            }
+
+            ImGui::DragFloat3("Source Position", &params.source->sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
             ImGui::SameLine();
             if (ImGui::Button("View in scene"))
                 ToggleSceneView();
 
+            ImGui::VerticalSpace(10);
+
+            // clang-format off
             ImGui::InputFloat("Delta Time",             &params.deltaTime); 
             ImGui::InputFloat("Wind iteration deltaT",  &params.windIterationDeltaTime); 
             ImGui::InputFloat("Temperature (K)",        &params.temperature);                       
             ImGui::InputFloat("Pressure (atm)",         &params.pressure);                             
-            ImGui::InputFloat("Filament_ppm_center",    &params.filament_ppm_center);       
-            ImGui::InputFloat("Filament_initial_sigma", &params.filament_initial_sigma); 
-            ImGui::InputFloat("Filament_growth_gamma",  &params.filament_growth_gamma);   
-            ImGui::InputFloat("Filament_noise_std",     &params.filament_noise_std);                          
+            ImGui::InputFloat("Filament_ppm_center",    &params.filamentPPMcenter);       
+            ImGui::InputFloat("Filament_initial_sigma", &params.filamentInitialSigma); 
+            ImGui::InputFloat("Filament_growth_gamma",  &params.filamentGrowthGamma);   
+            ImGui::InputFloat("Filament_noise_std",     &params.filamentNoise_std);                          
             ImGui::InputFloat("Filaments/sec",          &params.numFilaments_sec);
             ImGui::InputFloat("Simulation Duration",    &simDuration);
             
@@ -250,4 +287,20 @@ private:
     std::optional<std::thread> runSimThread;
     std::atomic<float> currentSimTime;
     bool simDone = false;
+
+    const std::vector<std::string> sourceTypeNames =
+        {
+            "point",
+            "sphere",
+            "box",
+            "line",
+        };
+
+    std::string ConcatenatedNames()
+    {
+        std::string s = "";
+        for (size_t i = 0; i < sourceTypeNames.size(); i++)
+            s += sourceTypeNames.at(i) + '\0';
+        return s;
+    }
 };
