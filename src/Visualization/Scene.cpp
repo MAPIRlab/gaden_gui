@@ -5,15 +5,15 @@
 #include "imgui.h"
 #include <iostream>
 
-// this file has a hell of a lot of boilerplate to set up OpenGL rendering...
-// the actual meat is actually very little code:
 //      - give the correct format to the triangle arrays
-//      - create bind array and index buffers
+//      - create and bind array and index buffers
 //      - create and bind the framebuffer to a textureID
 //      - render into framebuffer
 //      - pass the textureID to ImGui through ImGui::Image
 
-const char* vertexShaderSource = R"(
+namespace geometry
+{
+    const char* vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 normal;
@@ -30,10 +30,10 @@ void main()
 {
 	gl_Position = projection * view * model * vec4(aPos, 1.0f);
     vertexColor = vec4(color,1);
-    vertexNormal = normal;
+    vertexNormal = (model * vec4(normal,0)).xyz;
 })";
 
-const char* fragmentShaderSource = R"(
+    const char* fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
 
@@ -44,12 +44,53 @@ uniform vec3 lightDir = vec3(1, -1, 0);
 void main()
 {
     float diff = max(dot(normalize(vertexNormal), normalize(lightDir)), 0.0) * 0.5 + 0.5;
-	FragColor = vertexColor * diff;
+	FragColor.rgb = vertexColor.rgb * diff;
+	FragColor.a = vertexColor.a;
 })";
+} // namespace geometry
+
+namespace markers
+{
+    const char* vertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec3 aColor; //ignored
+
+uniform mat4 view;
+uniform mat4 projection;
+uniform mat4 model;
+uniform vec3 objectColor;
+
+out vec4 vertexColor; 
+out vec3 vertexNormal;
+
+void main()
+{
+	gl_Position = projection * view * model * vec4(aPos, 1.0f);
+    vertexColor = vec4(objectColor, 0.4);
+    vertexNormal =( model * vec4(aNormal, 0)).xyz;
+})";
+
+    const char* fragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+
+in vec4 vertexColor;
+in vec3 vertexNormal;
+uniform vec3 lightDir = vec3(1, -1, 0);
+
+void main()
+{
+    float diff = max(dot(normalize(vertexNormal), normalize(lightDir)), 0.0) * 0.5 + 0.5;
+	FragColor.rgb = vertexColor.rgb * diff;
+	FragColor.a = vertexColor.a;
+})";
+} // namespace markers
 
 constexpr ImVec2 windowSize = ImVec2(800, 600);
 
-Scene::Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors)
+Scene::Scene()
     : filamentsViz(*this)
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -58,59 +99,130 @@ Scene::Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vecto
         raise(SIGTRAP);
     }
 
-    for (size_t i = 0; i < models.size(); i++)
-        renderModels.push_back({models[i], colors[i]});
+    sphereMarker = RenderModel::CreateSphere(1, 20, 20, gaden::Color{1, 0, 1, 1});
+    cubeMarker = RenderModel::CreateCube(gaden::Color{1, 0, 1, 1});
 
-    sphereMarker = RenderModel::CreateSphere(0.1f, 20, 20, gaden::Color{1, 0, 1, 1});
-
-    shader.emplace(vertexShaderSource, fragmentShaderSource);
+    geometryShader.emplace(geometry::vertexShaderSource, geometry::fragmentShaderSource);
+    markersShader.emplace(markers::vertexShaderSource, markers::fragmentShaderSource);
     filamentsViz.SetUp();
 
     create_framebuffer();
 }
 
-void Scene::Render(glm::vec3 markerPosition)
+void Scene::CreateSceneGeometry(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors)
 {
-    ImGui::SetNextWindowSize(windowSize);
-    ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    renderModels.clear();
+    renderModels.reserve(models.size());
+    for (size_t i = 0; i < models.size(); i++)
+        renderModels.push_back({models[i], colors[i]});
+}
 
-    const float window_width = ImGui::GetContentRegionAvail().x;
-    const float window_height = ImGui::GetContentRegionAvail().y;
-    // currently unnecessary, we have a fixed size window!
-    //  rescale_framebuffer(window_width, window_height);
+void Scene::DrawSphere(glm::vec3 position, float radius, gaden::Color color)
+{
+    Transform transform;
+    transform.position = VizUtils::vecToGL(position);
+    transform.scale = glm::vec3{radius, radius, radius};
+    DrawCommand command{.shader = *markersShader,
+                        .model = sphereMarker,
+                        .color = {color.r, color.g, color.b},
+                        .transform = transform};
+    drawCommands.push_back(command);
+}
 
-    camera.HandleInput(g_app->GetDeltaTime());
+void Scene::DrawCube(glm::vec3 position, glm::vec3 scale, gaden::Color color)
+{
+    Transform transform;
+    transform.position = VizUtils::vecToGL(position);
+    transform.scale = VizUtils::scaleToGL(scale);
+    transform.rotation = glm::quat(1, 0, 0, 0);
+    DrawCommand command{.shader = *markersShader,
+                        .model = cubeMarker,
+                        .color = {color.r, color.g, color.b},
+                        .transform = transform};
+    drawCommands.push_back(command);
+}
 
-    // render into a framebuffer (texture), which will then be used by ImGui::Image
-    bind_framebuffer();
+void Scene::DrawLine(glm::vec3 start, glm::vec3 end, float width, gaden::Color color)
+{
+    start = VizUtils::vecToGL(start);
+    end = VizUtils::vecToGL(end);
 
-    // clear the buffer
-    glClearColor(0.4f, 0.55f, 0.7f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glm::vec3 line = end - start;
+    glm::vec3 direction = glm::normalize(line);
+    
+    bool isVertical = std::abs(direction.x) < 0.005f && std::abs(direction.z) < 0.005f;
+    
+    Transform transform;
+    transform.position = line * 0.5f + start;
+    transform.rotation = glm::quatLookAt(direction,
+                                                    isVertical ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0));
+    transform.scale = glm::vec3{width, width, glm::length(line)};
+    DrawCommand command{.shader = *markersShader,
+                        .model = cubeMarker,
+                        .color = {color.r, color.g, color.b},
+                        .transform = transform};
+    drawCommands.push_back(command);
+}
 
-    glEnable(GL_DEPTH_TEST);
+void Scene::Render()
+{
+    if (active)
+    {
+        ImGui::SetNextWindowSize(windowSize);
+        ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+        camera.HandleInput(g_app->GetDeltaTime());
 
-    // draw scene geometry
-    shader->use();
-    SetCameraInfoShader(*shader);
-    for (auto const& model : renderModels)
-        model.Draw(*shader);
+        // render into a framebuffer (texture), which will then be used by ImGui::Image
+        bind_framebuffer();
 
-    sphereMarker.transform.position = VizUtils::toGL(markerPosition);
-    sphereMarker.Draw(*shader);
+        // clear the buffer
+        glClearColor(0.4f, 0.55f, 0.7f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // draw filaments (if present)
-    filamentsViz.Draw();
+        glEnable(GL_DEPTH_TEST);
 
-    // cleanup
-    glBindVertexArray(0);
-    glUseProgram(0);
-    unbind_framebuffer();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
-    DrawControlsBox();
+        glEnable(GL_CULL_FACE);
 
-    ImGui::End();
+        // draw scene geometry
+        geometryShader->use();
+        SetCameraInfoShader(*geometryShader);
+
+        for (auto const& model : renderModels)
+            model.Draw(*geometryShader);
+
+        // draw filaments (if present)
+        filamentsViz.Draw();
+
+        // draw the transparents (deferred so that we can get blending)
+        glEnable(GL_BLEND);
+        for (auto& command : drawCommands)
+        {
+            command.shader.use();
+            command.shader.setVec3("objectColor", command.color);
+            SetCameraInfoShader(command.shader);
+
+            command.model.transform = command.transform;
+            command.model.Draw(command.shader);
+        }
+        glDisable(GL_BLEND);
+
+        // cleanup
+        glBindVertexArray(0);
+        glUseProgram(0);
+        unbind_framebuffer();
+
+        // show the rendered image to a window
+
+        const float window_width = ImGui::GetContentRegionAvail().x;
+        const float window_height = ImGui::GetContentRegionAvail().y;
+        ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
+        DrawControlsBox();
+
+        ImGui::End();
+    }
+    drawCommands.clear();
 }
 
 void Scene::SetCameraInfoShader(Shader const& s)

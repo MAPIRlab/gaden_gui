@@ -1,4 +1,5 @@
 #pragma once
+#include "Application.hpp"
 #include "Mode.hpp"
 #include "Visualization/Scene.hpp"
 #include "gaden/EnvironmentConfigMetadata.hpp"
@@ -24,8 +25,7 @@ public:
 
     void OnLoseFocus() override
     {
-        if (scene)
-            scene->active = false;
+        g_app->vizScene->active = false;
     }
 
     void OnGUI() override;
@@ -38,5 +38,4 @@ private:
 public:
     gaden::EnvironmentConfigMetadata& configMetadata;
     std::optional<gaden::EnvironmentConfiguration> config;
-    std::optional<Scene> scene;
 };

@@ -3,6 +3,7 @@
 #include "Project.hpp"
 #include <memory>
 #include <stack>
+#include <Visualization/Scene.hpp>
 
 class Application
 {
@@ -16,6 +17,7 @@ public:
 public:
     bool shouldClose = false;
     std::shared_ptr<Project> project;
+    std::unique_ptr<Scene> vizScene;
 
 private:
     void DrawHeader();

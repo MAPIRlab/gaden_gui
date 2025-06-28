@@ -2,9 +2,7 @@
 #include "Modes/DefaultMode.hpp"
 #include "imgui_gl/fonts.hpp"
 #include "imgui_gl/imgui_gl.h"
-#include <chrono>
 #include <gaden/internal/Time.hpp>
-#include <thread>
 
 void Application::Run()
 {
@@ -15,6 +13,7 @@ void Application::Run()
                 900,
                 imgui.FlagsFixedLayout() | ImGuiConfigFlags_ViewportsEnable); // enable multi-viewports so we can render the geometry on a popup window!
 
+    vizScene = std::make_unique<Scene>();
     // load fonts
     {
         // avoid an invalid free() on shutdown
@@ -32,16 +31,18 @@ void Application::Run()
 
     gaden::Utils::Time::Clock clock;
     gaden::Utils::Time::TimePoint lastIteration = clock.now();
+    gaden::Utils::Time::Rate rate(60);
     while (!shouldClose && !imgui.ShouldClose())
     {
         // calculate deltaTime
         deltaT = gaden::Utils::Time::toSeconds(clock.now() - lastIteration);
         lastIteration = clock.now();
 
-        // start rendering
+        // start the frame
         imgui.StartFrame();
-        ImGui::PushFont(Fonts::body);
 
+        // render the main window
+        ImGui::PushFont(Fonts::body);
         imgui.SetNextWindowFullscreen();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Background);
         ImGui::Begin("Main", NULL, imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
@@ -49,13 +50,18 @@ void Application::Run()
             DrawHeader();
             ImGui::VerticalSpace(10.f);
             modeStack.top()->OnGUI();
+            
+            // render the scene visualization (if it is currently active)
+            vizScene->Render();
         }
         ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopFont();
 
+
+        // finalize the frame
         imgui.Render();
-        std::this_thread::sleep_for(std::chrono::milliseconds(15));
+        rate.sleep();
     }
 
     imgui.Close();

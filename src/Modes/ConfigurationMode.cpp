@@ -49,8 +49,7 @@ void ConfigurationMode::OnGUI()
     if (ImGui::Button("View in scene"))
         CreateScene();
 
-    if (scene && scene->active)
-        scene->Render(configMetadata.emptyPoint);
+    g_app->vizScene->DrawSphere(configMetadata.emptyPoint, 0.1f);
     //------------------------
 
     ImGui::VerticalSpace(30);
@@ -160,6 +159,6 @@ void ConfigurationMode::CreateScene()
         models.push_back(gaden::ParseSTLFile(model));
         colors.push_back(model.color);
     }
-    scene.emplace(models, colors);
-    scene->active = true;
+    g_app->vizScene->CreateSceneGeometry(models, colors);
+    g_app->vizScene->active = true;
 }

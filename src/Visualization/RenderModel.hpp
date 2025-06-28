@@ -28,15 +28,15 @@ public:
         for (auto const& triangle : triangles)
         {
             // opengl coordinates are weird
-            auto p1 = VizUtils::toGL(triangle.p1);
-            auto p2 = VizUtils::toGL(triangle.p2);
-            auto p3 = VizUtils::toGL(triangle.p3);
+            auto p1 = VizUtils::vecToGL(triangle.p1);
+            auto p2 = VizUtils::vecToGL(triangle.p2);
+            auto p3 = VizUtils::vecToGL(triangle.p3);
 
-            auto normal = VizUtils::toGL(triangle.normal());
+            auto normal = VizUtils::vecToGL(triangle.normal());
 
-            vertexArray.push_back(Vertex{.Position = p1, .Normal = normal, .Color = {color.r, color.g, color.b}});
-            vertexArray.push_back(Vertex{.Position = p2, .Normal = normal, .Color = {color.r, color.g, color.b}});
             vertexArray.push_back(Vertex{.Position = p3, .Normal = normal, .Color = {color.r, color.g, color.b}});
+            vertexArray.push_back(Vertex{.Position = p2, .Normal = normal, .Color = {color.r, color.g, color.b}});
+            vertexArray.push_back(Vertex{.Position = p1, .Normal = normal, .Color = {color.r, color.g, color.b}});
 
             for (size_t i = 0; i < 3; i++)
                 triangleArray.push_back(vertexIndex++);
@@ -123,23 +123,67 @@ public:
                 // k1 => k2 => k1+1
                 if (i != 0)
                 {
-                    sphere.triangleArray.push_back(k1);
-                    sphere.triangleArray.push_back(k2);
                     sphere.triangleArray.push_back(k1 + 1);
+                    sphere.triangleArray.push_back(k2);
+                    sphere.triangleArray.push_back(k1);
                 }
 
                 // k1+1 => k2 => k2+1
                 if (i != (stackCount - 1))
                 {
-                    sphere.triangleArray.push_back(k1 + 1);
-                    sphere.triangleArray.push_back(k2);
                     sphere.triangleArray.push_back(k2 + 1);
+                    sphere.triangleArray.push_back(k2);
+                    sphere.triangleArray.push_back(k1 + 1);
                 }
             }
         }
 
         sphere.Setup();
         return sphere;
+    }
+
+    static RenderModel CreateCube(gaden::Color gadenColor)
+    {
+        RenderModel cube;
+        glm::vec3 color = {gadenColor.r, gadenColor.g, gadenColor.b};
+        glm::vec3 vertices[8] =
+            {
+                glm::vec3(-0.5f, -0.5f, -0.5f),
+                glm::vec3(0.5f, -0.5f, -0.5f),
+                glm::vec3(0.5f, 0.5f, -0.5f),
+                glm::vec3(-0.5f, 0.5f, -0.5f),
+                glm::vec3(-0.5f, -0.5f, 0.5f),
+                glm::vec3(0.5f, -0.5f, 0.5f),
+                glm::vec3(0.5f, 0.5f, 0.5f),
+                glm::vec3(-0.5f, 0.5f, 0.5f)};
+
+        glm::vec3 normals[6] =
+            {
+                glm::vec3(0, 0, -1),
+                glm::vec3(1, 0, 0),
+                glm::vec3(0, 0, 1),
+                glm::vec3(-1, 0, 0),
+                glm::vec3(0, 1, 0),
+                glm::vec3(0, -1, 0)};
+
+        int indices[6 * 6] =
+            {
+                0, 1, 3, 3, 1, 2,
+                1, 5, 2, 2, 5, 6,
+                5, 4, 6, 6, 4, 7,
+                4, 0, 7, 7, 0, 3,
+                3, 2, 7, 7, 2, 6,
+                4, 5, 0, 0, 5, 1};
+
+        for (size_t i = 0; i < 36; i++)
+        {
+            Vertex v{.Position = vertices[indices[i]], .Normal = normals[i/6], .Color = color};
+            cube.vertexArray.push_back(v);
+            cube.triangleArray.push_back(i);
+        }
+
+        cube.Setup();
+        return cube;
     }
 
 private:

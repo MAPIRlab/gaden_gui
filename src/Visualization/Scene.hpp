@@ -1,5 +1,6 @@
 #pragma once
 #include "Visualization/Camera.hpp"
+#include "Visualization/DrawCommand.hpp"
 #include "Visualization/FilamentsViz.hpp"
 #include "Visualization/RenderModel.hpp"
 #include "Visualization/Shader.hpp"
@@ -10,8 +11,15 @@
 class Scene
 {
 public:
-    Scene(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors);
-    void Render(glm::vec3 markerPosition);
+    Scene();
+    void CreateSceneGeometry(std::vector<std::vector<gaden::Triangle>> const& models, std::vector<gaden::Color> const& colors);
+
+    void DrawSphere(glm::vec3 position, float radius, gaden::Color color = {0, 0, 1, 1});
+    void DrawCube(glm::vec3 position, glm::vec3 scale, gaden::Color color = {0, 0, 1, 1});
+    void DrawLine(glm::vec3 start, glm::vec3 end, float width, gaden::Color color = {0, 0, 1, 1});
+
+    void Render();
+
     void SetCameraInfoShader(Shader const& s);
     bool active = false;
     FilamentsViz filamentsViz;
@@ -24,15 +32,18 @@ private:
     void DrawControlsBox();
 
 private:
-
     std::vector<RenderModel> renderModels;
     RenderModel sphereMarker;
-    
+    RenderModel cubeMarker;
+
     GLuint FBO; // frame buffer object
     GLuint RBO; // render buffer object
     GLuint texture_id;
-    
-    std::optional<Shader> shader;
+
+    std::optional<Shader> geometryShader;
+    std::optional<Shader> markersShader;
+
+    std::vector<DrawCommand> drawCommands;
 
     Camera camera;
 };

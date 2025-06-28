@@ -86,7 +86,7 @@ void FilamentsViz::SetFilaments(std::vector<gaden::Filament> const& filaments)
 
 #pragma omp parallel for
     for (size_t i = 0; i < filaments.size(); i++)
-        positions[i] = VizUtils::toGL(filaments[i].position);
+        positions[i] = VizUtils::vecToGL(filaments[i].position);
 }
 
 void FilamentsViz::Draw()

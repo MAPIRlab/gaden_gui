@@ -37,11 +37,8 @@ public:
 
     void OnLoseFocus() override
     {
-        if (configMode.scene)
-        {
-            configMode.scene->active = false;
-            configMode.scene->filamentsViz.CleanUp();
-        }
+        g_app->vizScene->active = false;
+        g_app->vizScene->filamentsViz.CleanUp();
     }
 
     void OnGUI() override
@@ -51,9 +48,6 @@ public:
         ImGui::Text("%s", fmt::format("Editing simulation '{}'", name).c_str());
         ImGui::Separator();
         ImGui::VerticalSpace(10);
-
-        if (configMode.scene && configMode.scene->active)
-            configMode.scene->Render(params.source->sourcePosition);
 
         ImGui::BeginDisabled(runSimThread.has_value());
         {
@@ -65,26 +59,30 @@ public:
                 {
                     if (!Is<gaden::PointSource>(params.source))
                         params.source = std::make_shared<gaden::PointSource>();
+                    g_app->vizScene->DrawSphere(params.source->sourcePosition, 0.1f);
                 }
                 else if (type_selected == 1)
                 {
                     if (!Is<gaden::SphereSource>(params.source))
                         params.source = std::make_shared<gaden::SphereSource>();
                     float r = As<gaden::SphereSource>(params.source)->GetRadius();
-                    ImGui::DragFloat("Source radius", &r);
+                    ImGui::DragFloat("Source radius", &r, 0.05f);
                     As<gaden::SphereSource>(params.source)->SetRadius(r);
+                    g_app->vizScene->DrawSphere(params.source->sourcePosition, As<gaden::SphereSource>(params.source)->GetRadius());
                 }
                 else if (type_selected == 2)
                 {
                     if (!Is<gaden::BoxSource>(params.source))
                         params.source = std::make_shared<gaden::BoxSource>();
-                    ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x);
+                    ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x, 0.05f);
+                    g_app->vizScene->DrawCube(params.source->sourcePosition, As<gaden::BoxSource>(params.source)->size);
                 }
                 else if (type_selected == 3)
                 {
                     if (!Is<gaden::LineSource>(params.source))
                         params.source = std::make_shared<gaden::LineSource>();
-                    ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x);
+                    ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x, 0.05f);
+                    g_app->vizScene->DrawLine(params.source->sourcePosition, As<gaden::LineSource>(params.source)->lineEnd, 0.02f);
                 }
             }
 
@@ -250,8 +248,8 @@ private:
                 // this is not very efficient, because we are potentially copying the filament positions multiple times on a single frame, when only the last copy matters
                 // however, avoiding that would be a bit of a mess
                 //  if speed is a concern you can always run the simulation without visualization
-                if (configMode.scene && configMode.scene->active)
-                    configMode.scene->filamentsViz.SetFilaments(sim.GetFilaments());
+                if (g_app->vizScene->active)
+                    g_app->vizScene->filamentsViz.SetFilaments(sim.GetFilaments());
 
                 if (r != 0)
                     rate.sleep();
@@ -269,10 +267,10 @@ private:
 
     void ToggleSceneView()
     {
-        if (!configMode.scene || !configMode.scene->active)
+        if (!g_app->vizScene->active)
             configMode.CreateScene();
         else
-            configMode.scene->active = false;
+            g_app->vizScene->active = false;
     }
 
 private:

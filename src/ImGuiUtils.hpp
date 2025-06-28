@@ -79,12 +79,11 @@ namespace ImGui
     // set viewport to prevent the tooltip from becoming its own window
     inline void HelpMarker(const char* desc, float hsize = 35.f, bool canLeaveViewport = false)
     {
-        if (!canLeaveViewport)
-            ImGui::SetNextWindowViewport(ImGui::GetWindowViewport()->ID);
-
         ImGui::TextDisabled("(?)");
         if (ImGui::BeginItemTooltip())
         {
+            if (!canLeaveViewport)
+                ImGui::SetNextWindowViewport(ImGui::GetWindowViewport()->ID);
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * hsize);
             ImGui::TextUnformatted(desc);
             ImGui::PopTextWrapPos();
