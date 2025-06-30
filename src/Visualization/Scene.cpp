@@ -149,13 +149,13 @@ void Scene::DrawLine(glm::vec3 start, glm::vec3 end, float width, gaden::Color c
 
     glm::vec3 line = end - start;
     glm::vec3 direction = glm::normalize(line);
-    
+
     bool isVertical = std::abs(direction.x) < 0.005f && std::abs(direction.z) < 0.005f;
-    
+
     Transform transform;
     transform.position = line * 0.5f + start;
     transform.rotation = glm::quatLookAt(direction,
-                                                    isVertical ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0));
+                                         isVertical ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0));
     transform.scale = glm::vec3{width, width, glm::length(line)};
     DrawCommand command{.shader = *markersShader,
                         .model = cubeMarker,
@@ -169,6 +169,11 @@ void Scene::Render()
     if (active)
     {
         ImGui::SetNextWindowSize(windowSize);
+        //offset the window so it is not perfectly aligned with the main viewport -- since you want to be able to see both at the same time
+        ImVec2 pos = ImGui::GetMainViewport()->GetCenter();
+        pos.x += 400;
+        ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+
         ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
         camera.HandleInput(g_app->GetDeltaTime());
 
@@ -180,9 +185,7 @@ void Scene::Render()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);
-
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         glEnable(GL_CULL_FACE);
 
         // draw scene geometry

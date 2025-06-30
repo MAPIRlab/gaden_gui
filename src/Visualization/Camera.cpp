@@ -7,7 +7,7 @@
 Camera::Camera()
 {
     transform.position = glm::vec3(5, 5, 5);
-    
+
     // look towards (0,0,0)
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 cameraDirection = glm::normalize(cameraTarget - transform.position);
@@ -23,6 +23,8 @@ Camera::Camera()
 
 void Camera::HandleInput(float deltaTime)
 {
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right))
+        ImGui::SetWindowFocus();
     if (!ImGui::IsWindowFocused())
         return;
 

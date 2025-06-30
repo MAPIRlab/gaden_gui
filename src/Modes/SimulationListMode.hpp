@@ -25,8 +25,9 @@ public:
     {
         ImGui::TextCenteredOnLine(fmt::format("Project: '{}'", g_app->project->GetRoot()).c_str());
         ImGui::TextCenteredOnLine(fmt::format("Configuration '{}'", configMode.configMetadata.GetName()).c_str());
-        ImGui::Separator();
         ImGui::VerticalSpace(10);
+        ImGui::Separator();
+        ImGui::VerticalSpace(40);
 
         for (auto& [name, params] : configMode.configMetadata.simulations)
         {

@@ -14,8 +14,9 @@ void ConfigurationMode::OnGUI()
 {
     ImGui::Text("Project: '%s'", g_app->project->GetRoot().c_str());
     ImGui::Text("%s", fmt::format("Editing configuration '{}'", configMetadata.GetName()).c_str());
-    ImGui::Separator();
     ImGui::VerticalSpace(10);
+    ImGui::Separator();
+    ImGui::VerticalSpace(20);
 
     ImGui::InputFloat("Cell size", &configMetadata.cellSize, 0.0f, 0.0f, "%.2f");
     ImGui::Checkbox("Uniform Wind", &configMetadata.uniformWind);

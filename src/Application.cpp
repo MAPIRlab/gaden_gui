@@ -10,7 +10,7 @@ void Application::Run()
     imgui.Setup(nullptr,
                 "Gaden",
                 900,
-                900,
+                930,
                 imgui.FlagsFixedLayout() | ImGuiConfigFlags_ViewportsEnable); // enable multi-viewports so we can render the geometry on a popup window!
 
     vizScene = std::make_unique<Scene>();

@@ -30,8 +30,9 @@ public:
     void OnGUI() override
     {
         ImGui::TextCenteredOnLine(fmt::format("Project: '{}'", g_app->project->GetRoot()).c_str());
-        ImGui::Separator();
         ImGui::VerticalSpace(10);
+        ImGui::Separator();
+        ImGui::VerticalSpace(40);
 
         for (auto& [name, config] : g_app->project->configurations)
         {

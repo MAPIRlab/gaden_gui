@@ -24,6 +24,10 @@ public:
         : configMode(_configMode), params(_params), name(_name)
     {
         params.saveDataDirectory = configMode.configMetadata.GetSimulationFilePath(name).parent_path() / "result";
+
+        sourceTypeSelected = std::find(sourceTypeNames.begin(), sourceTypeNames.end(), params.source->Type()) - sourceTypeNames.begin();
+        gasType = params.source->gasType;
+        sourcePosition = params.source->sourcePosition;
     }
 
     void OnPush() override
@@ -46,50 +50,48 @@ public:
         ImGui::Text("Project: '%s'", g_app->project->GetRoot().c_str());
         ImGui::Text("%s", fmt::format("Configuration '{}'", configMode.configMetadata.GetName()).c_str());
         ImGui::Text("%s", fmt::format("Editing simulation '{}'", name).c_str());
-        ImGui::Separator();
         ImGui::VerticalSpace(10);
+        ImGui::Separator();
 
         ImGui::BeginDisabled(runSimThread.has_value());
         {
-            // GasType gasType = GasType::unknown; //TODO
-            static int type_selected = std::find(sourceTypeNames.begin(), sourceTypeNames.end(), params.source->Type()) - sourceTypeNames.begin();
-            ImGui::Combo("Source type", &type_selected, ConcatenatedNames().c_str());
+            ImGui::Combo("Source type", &sourceTypeSelected, ConcatenatedNames().c_str());
             {
-                if (type_selected == 0)
+                if (sourceTypeNames.at(sourceTypeSelected) == "point")
                 {
                     if (!Is<gaden::PointSource>(params.source))
                         params.source = std::make_shared<gaden::PointSource>();
-                    g_app->vizScene->DrawSphere(params.source->sourcePosition, 0.1f);
                 }
-                else if (type_selected == 1)
+                else if (sourceTypeNames.at(sourceTypeSelected) == "sphere")
                 {
                     if (!Is<gaden::SphereSource>(params.source))
                         params.source = std::make_shared<gaden::SphereSource>();
                     float r = As<gaden::SphereSource>(params.source)->GetRadius();
                     ImGui::DragFloat("Source radius", &r, 0.05f);
                     As<gaden::SphereSource>(params.source)->SetRadius(r);
-                    g_app->vizScene->DrawSphere(params.source->sourcePosition, As<gaden::SphereSource>(params.source)->GetRadius());
                 }
-                else if (type_selected == 2)
+                else if (sourceTypeNames.at(sourceTypeSelected) == "box")
                 {
                     if (!Is<gaden::BoxSource>(params.source))
                         params.source = std::make_shared<gaden::BoxSource>();
                     ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x, 0.05f);
-                    g_app->vizScene->DrawCube(params.source->sourcePosition, As<gaden::BoxSource>(params.source)->size);
                 }
-                else if (type_selected == 3)
+                else if (sourceTypeNames.at(sourceTypeSelected) == "line")
                 {
                     if (!Is<gaden::LineSource>(params.source))
                         params.source = std::make_shared<gaden::LineSource>();
                     ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x, 0.05f);
-                    g_app->vizScene->DrawLine(params.source->sourcePosition, As<gaden::LineSource>(params.source)->lineEnd, 0.02f);
                 }
             }
-
-            ImGui::DragFloat3("Source Position", &params.source->sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
+            ImGui::DragFloat3("Source Position", &sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
+            params.source->sourcePosition = sourcePosition;
             ImGui::SameLine();
             if (ImGui::Button("View in scene"))
                 ToggleSceneView();
+            DrawSource();
+
+            ImGui::Combo("Gas Type", (int*)&gasType, ConcatenatedGasTypes().c_str());
+            params.source->gasType = gasType;
 
             ImGui::VerticalSpace(10);
 
@@ -98,7 +100,7 @@ public:
             ImGui::InputFloat("Wind iteration deltaT",  &params.windIterationDeltaTime); 
             ImGui::InputFloat("Temperature (K)",        &params.temperature);                       
             ImGui::InputFloat("Pressure (atm)",         &params.pressure);                             
-            ImGui::InputFloat("Filament_ppm_center",    &params.filamentPPMcenter);       
+            ImGui::InputFloat("Filament_ppm_center",    &params.filamentPPMcenter_initial);       
             ImGui::InputFloat("Filament_initial_sigma", &params.filamentInitialSigma); 
             ImGui::InputFloat("Filament_growth_gamma",  &params.filamentGrowthGamma);   
             ImGui::InputFloat("Filament_noise_std",     &params.filamentNoise_std);                          
@@ -286,6 +288,10 @@ private:
     std::atomic<float> currentSimTime;
     bool simDone = false;
 
+    gaden::Vector3 sourcePosition;
+    int sourceTypeSelected;
+    gaden::GasType gasType;
+
     const std::vector<std::string> sourceTypeNames =
         {
             "point",
@@ -300,5 +306,25 @@ private:
         for (size_t i = 0; i < sourceTypeNames.size(); i++)
             s += sourceTypeNames.at(i) + '\0';
         return s;
+    }
+
+    std::string ConcatenatedGasTypes()
+    {
+        std::string s = "";
+        for (size_t i = 0; i < 14; i++)
+            s += gaden::to_string(gaden::GasType(i)) + '\0';
+        return s;
+    }
+
+    void DrawSource()
+    {
+        if (Is<gaden::PointSource>(params.source))
+            g_app->vizScene->DrawSphere(params.source->sourcePosition, 0.1f);
+        if (Is<gaden::SphereSource>(params.source))
+            g_app->vizScene->DrawSphere(params.source->sourcePosition, As<gaden::SphereSource>(params.source)->GetRadius());
+        if (Is<gaden::BoxSource>(params.source))
+            g_app->vizScene->DrawCube(params.source->sourcePosition, As<gaden::BoxSource>(params.source)->size);
+        if (Is<gaden::LineSource>(params.source))
+            g_app->vizScene->DrawLine(params.source->sourcePosition, As<gaden::LineSource>(params.source)->lineEnd, 0.02f);
     }
 };
