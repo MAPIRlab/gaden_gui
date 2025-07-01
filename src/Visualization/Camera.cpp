@@ -6,7 +6,7 @@
 
 Camera::Camera()
 {
-    transform.position = glm::vec3(5, 5, 5);
+    transform.position = glm::vec3(5, 10, 5);
 
     // look towards (0,0,0)
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);

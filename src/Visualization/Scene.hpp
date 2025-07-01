@@ -17,6 +17,7 @@ public:
     void DrawSphere(glm::vec3 position, float radius, gaden::Color color = {0, 0, 1, 1});
     void DrawCube(glm::vec3 position, glm::vec3 scale, gaden::Color color = {0, 0, 1, 1});
     void DrawLine(glm::vec3 start, glm::vec3 end, float width, gaden::Color color = {0, 0, 1, 1});
+    void DrawCylinder(glm::vec3 position, float radius, float height, gaden::Color color = {0, 0, 1, 1});
 
     void Render();
 
@@ -35,6 +36,7 @@ private:
     std::vector<RenderModel> renderModels;
     RenderModel sphereMarker;
     RenderModel cubeMarker;
+    RenderModel cylinderMarker;
 
     GLuint FBO; // frame buffer object
     GLuint RBO; // render buffer object

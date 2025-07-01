@@ -4,6 +4,7 @@
 #include "Modes/ConfigurationMode.hpp"
 #include "Modes/Mode.hpp"
 #include "Utils.hpp"
+#include "gaden/datatypes/sources/CylinderSource.hpp"
 #include "gaden/internal/Pointers.hpp"
 #include "imgui.h"
 #include <atomic>
@@ -25,7 +26,7 @@ public:
     {
         params.saveDataDirectory = configMode.configMetadata.GetSimulationFilePath(name).parent_path() / "result";
 
-        sourceTypeSelected = std::find(sourceTypeNames.begin(), sourceTypeNames.end(), params.source->Type()) - sourceTypeNames.begin();
+        sourceTypeSelected = std::find(gaden::GasSource::sourceTypeNames.begin(), gaden::GasSource::sourceTypeNames.end(), params.source->Type()) - gaden::GasSource::sourceTypeNames.begin();
         gasType = params.source->gasType;
         sourcePosition = params.source->sourcePosition;
     }
@@ -57,30 +58,35 @@ public:
         {
             ImGui::Combo("Source type", &sourceTypeSelected, ConcatenatedNames().c_str());
             {
-                if (sourceTypeNames.at(sourceTypeSelected) == "point")
+                if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "point")
                 {
                     if (!Is<gaden::PointSource>(params.source))
                         params.source = std::make_shared<gaden::PointSource>();
                 }
-                else if (sourceTypeNames.at(sourceTypeSelected) == "sphere")
+                else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "sphere")
                 {
                     if (!Is<gaden::SphereSource>(params.source))
                         params.source = std::make_shared<gaden::SphereSource>();
-                    float r = As<gaden::SphereSource>(params.source)->GetRadius();
-                    ImGui::DragFloat("Source radius", &r, 0.05f);
-                    As<gaden::SphereSource>(params.source)->SetRadius(r);
+                    ImGui::DragFloat("Source radius", &As<gaden::SphereSource>(params.source)->radius, 0.05f);
                 }
-                else if (sourceTypeNames.at(sourceTypeSelected) == "box")
+                else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "box")
                 {
                     if (!Is<gaden::BoxSource>(params.source))
                         params.source = std::make_shared<gaden::BoxSource>();
                     ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x, 0.05f);
                 }
-                else if (sourceTypeNames.at(sourceTypeSelected) == "line")
+                else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "line")
                 {
                     if (!Is<gaden::LineSource>(params.source))
                         params.source = std::make_shared<gaden::LineSource>();
                     ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x, 0.05f);
+                }
+                else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "cylinder")
+                {
+                    if (!Is<gaden::CylinderSource>(params.source))
+                        params.source = std::make_shared<gaden::CylinderSource>();
+                    ImGui::DragFloat("Source Radius", &As<gaden::CylinderSource>(params.source)->radius, 0.05f);
+                    ImGui::DragFloat("Source Height", &As<gaden::CylinderSource>(params.source)->height, 0.05f);
                 }
             }
             ImGui::DragFloat3("Source Position", &sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -292,19 +298,11 @@ private:
     int sourceTypeSelected;
     gaden::GasType gasType;
 
-    const std::vector<std::string> sourceTypeNames =
-        {
-            "point",
-            "sphere",
-            "box",
-            "line",
-        };
-
     std::string ConcatenatedNames()
     {
         std::string s = "";
-        for (size_t i = 0; i < sourceTypeNames.size(); i++)
-            s += sourceTypeNames.at(i) + '\0';
+        for (size_t i = 0; i < gaden::GasSource::sourceTypeNames.size(); i++)
+            s += gaden::GasSource::sourceTypeNames.at(i) + '\0';
         return s;
     }
 
@@ -320,11 +318,15 @@ private:
     {
         if (Is<gaden::PointSource>(params.source))
             g_app->vizScene->DrawSphere(params.source->sourcePosition, 0.1f);
-        if (Is<gaden::SphereSource>(params.source))
-            g_app->vizScene->DrawSphere(params.source->sourcePosition, As<gaden::SphereSource>(params.source)->GetRadius());
-        if (Is<gaden::BoxSource>(params.source))
+        else if (Is<gaden::SphereSource>(params.source))
+            g_app->vizScene->DrawSphere(params.source->sourcePosition, As<gaden::SphereSource>(params.source)->radius);
+        else if (Is<gaden::BoxSource>(params.source))
             g_app->vizScene->DrawCube(params.source->sourcePosition, As<gaden::BoxSource>(params.source)->size);
-        if (Is<gaden::LineSource>(params.source))
+        else if (Is<gaden::LineSource>(params.source))
             g_app->vizScene->DrawLine(params.source->sourcePosition, As<gaden::LineSource>(params.source)->lineEnd, 0.02f);
+        else if (Is<gaden::CylinderSource>(params.source))
+            g_app->vizScene->DrawCylinder(params.source->sourcePosition,
+                                          As<gaden::CylinderSource>(params.source)->radius,
+                                          As<gaden::CylinderSource>(params.source)->height);
     }
 };

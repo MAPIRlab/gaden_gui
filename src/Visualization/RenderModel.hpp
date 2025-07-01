@@ -177,7 +177,7 @@ public:
 
         for (size_t i = 0; i < 36; i++)
         {
-            Vertex v{.Position = vertices[indices[i]], .Normal = normals[i/6], .Color = color};
+            Vertex v{.Position = vertices[indices[i]], .Normal = normals[i / 6], .Color = color};
             cube.vertexArray.push_back(v);
             cube.triangleArray.push_back(i);
         }
@@ -185,6 +185,70 @@ public:
         cube.Setup();
         return cube;
     }
+
+    // radius 1, z from -0.5 to 0.5
+    static RenderModel CreateCylinder(size_t numFaces, gaden::Color)
+    {
+        RenderModel cylinder;
+
+        cylinder.vertexArray.resize(4 * numFaces + 2);
+        cylinder.triangleArray.resize(12 * numFaces);
+
+        cylinder.vertexArray[4 * numFaces + 0].Position = {0, 0.5, 0};  // top centre
+        cylinder.vertexArray[4 * numFaces + 1].Position = {0, -0.5, 0}; // bottom centre
+
+        glm::vec3 top_normal = {0, 1, 0};
+        glm::vec3 bottom_normal = -top_normal;
+
+        cylinder.vertexArray[4 * numFaces + 0].Normal = top_normal;    // top centre
+        cylinder.vertexArray[4 * numFaces + 1].Normal = bottom_normal; // bottom centre
+
+        // main normal direction (axis of cylinder)
+        glm::vec3 normal = {0, 1, 0};
+        glm::vec3 tangent = {0, 0, 1};
+        glm::vec3 biTangent = glm::normalize(glm::cross(normal, tangent));
+
+        for (int i = 0; i < numFaces; i++)
+        {
+            float angle = i * 2 * M_PI / numFaces;
+
+            float nx = cos(angle);
+            float ny = sin(angle);
+
+            // current tangent direction offset
+            glm::vec3 offset = nx * tangent + ny * biTangent;
+
+            cylinder.vertexArray[2 * i + 0].Position = cylinder.vertexArray[2 * numFaces + i].Position = glm::vec3{0, 0.5, 0} + offset;
+            cylinder.vertexArray[2 * i + 1].Position = cylinder.vertexArray[3 * numFaces + i].Position = glm::vec3{0, -0.5, 0} + offset;
+
+            cylinder.vertexArray[2 * i + 0].Normal = offset;
+            cylinder.vertexArray[2 * i + 1].Normal = offset;
+            cylinder.vertexArray[2 * numFaces + i].Normal = top_normal;
+            cylinder.vertexArray[3 * numFaces + i].Normal = bottom_normal;
+
+            int j = (i + 1) % numFaces; // index of next face
+            // outer faces
+            // lower-right triangle
+            cylinder.triangleArray[6 * i + 0] = 2 * j + 0; // lower-right
+            cylinder.triangleArray[6 * i + 1] = 2 * j + 1; // upper-right
+            cylinder.triangleArray[6 * i + 2] = 2 * i + 0; // lower-left
+            // upper-left triangle
+            cylinder.triangleArray[6 * i + 3] = 2 * j + 1; // upper-right
+            cylinder.triangleArray[6 * i + 4] = 2 * i + 1; // upper-left
+            cylinder.triangleArray[6 * i + 5] = 2 * i + 0; // lower-left
+            // bottom face
+            cylinder.triangleArray[6 * numFaces + 3 * i + 0] = 4 * numFaces + 0; // centre
+            cylinder.triangleArray[6 * numFaces + 3 * i + 1] = 2 * numFaces + j;
+            cylinder.triangleArray[6 * numFaces + 3 * i + 2] = 2 * numFaces + i;
+            // top face
+            cylinder.triangleArray[9 * numFaces + 3 * i + 0] = 3 * numFaces + i;
+            cylinder.triangleArray[9 * numFaces + 3 * i + 1] = 3 * numFaces + j;
+            cylinder.triangleArray[9 * numFaces + 3 * i + 2] = 4 * numFaces + 1; // centre
+        }
+
+        cylinder.Setup();
+        return cylinder;
+    };
 
 private:
     GLuint VAO; // vertex array object

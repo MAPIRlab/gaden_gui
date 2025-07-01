@@ -1,5 +1,6 @@
 #pragma once
 #include "imgui.h"
+#include "imgui_internal.h"
 #include <cstdint>
 
 namespace Colors
@@ -80,10 +81,11 @@ namespace ImGui
     inline void HelpMarker(const char* desc, float hsize = 35.f, bool canLeaveViewport = false)
     {
         ImGui::TextDisabled("(?)");
-        if (ImGui::BeginItemTooltip())
+        if (IsItemHovered(ImGuiHoveredFlags_ForTooltip))
         {
             if (!canLeaveViewport)
                 ImGui::SetNextWindowViewport(ImGui::GetWindowViewport()->ID);
+            ImGui::BeginItemTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * hsize);
             ImGui::TextUnformatted(desc);
             ImGui::PopTextWrapPos();

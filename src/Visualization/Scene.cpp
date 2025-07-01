@@ -101,6 +101,7 @@ Scene::Scene()
 
     sphereMarker = RenderModel::CreateSphere(1, 20, 20, gaden::Color{1, 0, 1, 1});
     cubeMarker = RenderModel::CreateCube(gaden::Color{1, 0, 1, 1});
+    cylinderMarker = RenderModel::CreateCylinder(20, gaden::Color{1, 0, 1, 1});
 
     geometryShader.emplace(geometry::vertexShaderSource, geometry::fragmentShaderSource);
     markersShader.emplace(markers::vertexShaderSource, markers::fragmentShaderSource);
@@ -164,14 +165,27 @@ void Scene::DrawLine(glm::vec3 start, glm::vec3 end, float width, gaden::Color c
     drawCommands.push_back(command);
 }
 
+void Scene::DrawCylinder(glm::vec3 position, float radius, float height, gaden::Color color)
+{
+    Transform transform;
+    transform.position = VizUtils::vecToGL(position);
+    transform.scale = glm::vec3{radius, height, radius};
+    DrawCommand command{.shader = *markersShader,
+                        .model = cylinderMarker,
+                        .color = {color.r, color.g, color.b},
+                        .transform = transform};
+    drawCommands.push_back(command);
+}
+
 void Scene::Render()
 {
     if (active)
     {
         ImGui::SetNextWindowSize(windowSize);
-        //offset the window so it is not perfectly aligned with the main viewport -- since you want to be able to see both at the same time
+        // offset the window so it is not perfectly aligned with the main viewport -- since you want to be able to see both at the same time
         ImVec2 pos = ImGui::GetMainViewport()->GetCenter();
         pos.x += 400;
+        pos.y -= 200;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
 
         ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);

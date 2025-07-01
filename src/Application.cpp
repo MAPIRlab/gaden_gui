@@ -42,7 +42,7 @@ void Application::Run()
         imgui.StartFrame();
 
         // render the main window
-        ImGui::PushFont(Fonts::body);
+        ImGui::PushFont(Fonts::body, 0.f);
         imgui.SetNextWindowFullscreen();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Background);
         ImGui::Begin("Main", NULL, imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
@@ -96,7 +96,7 @@ std::shared_ptr<Mode> Application::GetCurrentMode()
 
 void Application::DrawHeader()
 {
-    ImGui::PushFont(Fonts::header);
+    ImGui::PushFont(Fonts::header, 0.f);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Header);
     DrawInChildSpanHorizontal("header",
                               {
