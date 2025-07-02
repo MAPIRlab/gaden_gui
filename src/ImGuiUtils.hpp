@@ -1,7 +1,8 @@
 #pragma once
 #include "imgui.h"
-#include "imgui_internal.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include <cstdint>
+#include <string>
 
 namespace Colors
 {
@@ -16,6 +17,8 @@ namespace Colors
 
     constexpr uint32_t InfoText = 0xffbedb1a;
     constexpr uint32_t ErrorText = 0xff2e48c9;
+
+    constexpr uint32_t RequiredField = 0xff2e4899;
 
     inline ImVec4 AsVec(uint32_t hex)
     {
@@ -38,6 +41,41 @@ namespace Fonts
 
 namespace ImGui
 {
+    class ScopedStyle
+    {
+    public:
+        ScopedStyle(ImGuiCol_ key, ImU32 color)
+        {
+            type = Color;
+            ImGui::PushStyleColor(key, color);
+        }
+
+        ScopedStyle(ImGuiStyleVar_ key, ImU32 color)
+        {
+            type = Color;
+            ImGui::PushStyleVar(key, color);
+        }
+
+        ~ScopedStyle()
+        {
+            if (type == Color)
+                ImGui::PopStyleColor();
+            else if (type == Var)
+                ImGui::PopStyleVar();
+            else
+                fprintf(stderr, "Incorrect ScopedStyle type!");
+        }
+
+    private:
+        enum Type
+        {
+            None,
+            Color,
+            Var
+        };
+        Type type;
+    };
+
     inline void TextCenteredOnLine(const char* label, float alignment = 0.5f)
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -91,6 +129,18 @@ namespace ImGui
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
+    }
+
+    inline void TextInputRequired(const char* label, std::string* text)
+    {
+        if (text->empty())
+        {
+            ScopedStyle bgstyle(ImGuiCol_FrameBg, Colors::RequiredField);
+            ScopedStyle textstyle(ImGuiCol_TextDisabled, 0xccffffff);
+            ImGui::InputTextWithHint(label, "Required!", text);
+        }
+        else
+            ImGui::InputText(label, text);
     }
 
 #define CalculateSize(result, ...)                                                              \

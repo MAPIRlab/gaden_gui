@@ -7,7 +7,6 @@
 #include "gaden/Preprocessing.hpp"
 #include "gaden/internal/STL.hpp"
 #include "imgui.h"
-#include "misc/cpp/imgui_stdlib.h"
 #include <regex>
 
 void ConfigurationMode::OnGUI()
@@ -20,7 +19,7 @@ void ConfigurationMode::OnGUI()
 
     ImGui::InputFloat("Cell size", &configMetadata.cellSize, 0.0f, 0.0f, "%.2f");
     ImGui::Checkbox("Uniform Wind", &configMetadata.uniformWind);
-    ImGui::InputText("Unprocessed Wind Files", &configMetadata.unprocessedWindFiles);
+    ImGui::TextInputRequired("Unprocessed Wind Files", &configMetadata.unprocessedWindFiles);
     ImGui::SameLine();
     if (ImGui::Button("Find"))
     {
@@ -107,7 +106,7 @@ void ConfigurationMode::ModelsList(std::vector<gaden::Model3D>& models, const ch
 
         // path
         std::string temp = model.path.string();
-        ImGui::InputText("Path", &temp);
+        ImGui::TextInputRequired("Path", &temp);
         ImGui::SameLine();
         if (ImGui::Button("Find"))
             temp = Utils::FileDialog("STL models | *.stl", model.path);

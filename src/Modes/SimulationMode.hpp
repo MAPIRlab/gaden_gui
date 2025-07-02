@@ -96,7 +96,13 @@ public:
                 ToggleSceneView();
             DrawSource();
 
-            ImGui::Combo("Gas Type", (int*)&gasType, ConcatenatedGasTypes().c_str());
+            if (gasType == gaden::GasType::unknown)
+            {
+                ImGui::ScopedStyle bgstyle(ImGuiCol_FrameBg, Colors::RequiredField);
+                ImGui::Combo("Gas Type", (int*)&gasType, ConcatenatedGasTypes().c_str());
+            }
+            else
+                ImGui::Combo("Gas Type", (int*)&gasType, ConcatenatedGasTypes().c_str());
             params.source->gasType = gasType;
 
             ImGui::VerticalSpace(10);
