@@ -120,8 +120,11 @@ public:
             ImGui::InputScalar("Loop to", ImGuiDataType_U64, &params.windLoop.to, NULL);
             ImGui::EndDisabled();
             
-            params.saveResults = true; // it never makes sense to run simulation through this GUI and *not* save results            
+            ImGui::Checkbox("Save results", &params.saveResults);
             ImGui::InputFloat("Save deltaT",    &params.saveDeltaTime);
+            ImGui::Checkbox("Pre-calculate concentration", &params.preCalculateConcentrations);
+            ImGui::SameLine();
+            ImGui::HelpMarker("This will make the simulation really slow! Don't use it unless you know you need it.");
 
             ImGui::VerticalSpace(10);
             ImGui::Checkbox("Limit simulation rate", &limitRate);
@@ -139,7 +142,7 @@ public:
         }
         ImGui::EndDisabled();
 
-        ImGui::VerticalSpace(20);
+        ImGui::VerticalSpace(10);
 
         if (runSimThread)
         {
@@ -154,14 +157,14 @@ public:
         }
         else if (!configMode.config)
         {
-            ImGui::TextColored(Colors::AsVec(Colors::ErrorText), "Need to run preprocessing before simulations!");
             ImGui::Text("");
+            ImGui::TextColored(Colors::AsVec(Colors::ErrorText), "Need to run preprocessing before simulations!");
         }
         else
         {
             // keep the same spacing
             ImGui::Text("");
-            ImGui::Text("");
+            ImGui::TextColored(Colors::AsVec(Colors::InfoText), "Ready for simulation");
         }
 
         ImGui::BeginDisabled(runSimThread.has_value());
@@ -262,11 +265,15 @@ private:
                 if (r != 0)
                     rate.sleep();
             }
-            Utils::DisplayInfo("Simulation completed!");
+
+            if (sim.GetCurrentTime() >= simDuration)
+                Utils::DisplayInfo("Simulation completed!");
+
             canRun = true;
         }
         catch (std::exception const& e)
         {
+            GADEN_ERROR("Caught exception while running simulation: '{}'", e.what());
             Utils::DisplayError("Simulation failed! See logs for more info");
         }
 
