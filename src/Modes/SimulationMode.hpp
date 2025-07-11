@@ -163,13 +163,13 @@ public:
         }
         else if (!configMode.config)
         {
-            ImGui::Text("");
+            ImGui::VerticalSpace(ImGui::GetTextLineHeight());
             ImGui::TextColored(Colors::AsVec(Colors::ErrorText), "Need to run preprocessing before simulations!");
         }
         else
         {
             // keep the same spacing
-            ImGui::Text("");
+            ImGui::VerticalSpace(ImGui::GetTextLineHeight());
             ImGui::TextColored(Colors::AsVec(Colors::InfoText), "Ready for simulation");
         }
 

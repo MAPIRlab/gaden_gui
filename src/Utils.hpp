@@ -15,7 +15,7 @@ namespace Utils
             buffer[0] = '\0'; // in case zenity returns nothing at all (canceled interaction)
 
             FILE* f = popen(command, "r");
-            fgets(buffer, 1024, f);
+            char* b = fgets(buffer, 1024, f); // gcc complains about unused result here
 
             // zenity returns a newline character at the end!
             std::string response(buffer);
