@@ -1,6 +1,7 @@
 #include "ConfigurationMode.hpp"
 #include "Application.hpp"
 #include "ImGuiUtils.hpp"
+#include "Modes/SceneListMode.hpp"
 #include "SimulationListMode.hpp"
 #include "Utils.hpp"
 #include "Visualization/Scene.hpp"
@@ -82,6 +83,13 @@ void ConfigurationMode::OnGUI()
     if (ImGui::Button("Go to 'Simulations'"))
     {
         g_app->PushMode(std::make_shared<SimulationListMode>(*this));
+    }
+
+
+    ImGui::SameLine();
+    if (ImGui::Button("Go to 'Scenes'"))
+    {
+        g_app->PushMode(std::make_shared<SceneListMode>(*this));
     }
     ImGui::PopStyleColor();
 

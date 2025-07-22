@@ -37,5 +37,5 @@ private:
 
 public:
     gaden::EnvironmentConfigMetadata& configMetadata;
-    std::optional<gaden::EnvironmentConfiguration> config;
+    std::shared_ptr<gaden::EnvironmentConfiguration> config;
 };

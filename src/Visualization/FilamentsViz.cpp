@@ -78,38 +78,44 @@ void FilamentsViz::SetUp()
     shader.emplace(vertexShader, fragmentShader);
 }
 
-void FilamentsViz::SetFilaments(std::vector<gaden::Filament> const& filaments)
+void FilamentsViz::DrawFilaments(std::vector<gaden::Filament> const& filaments, gaden::Color color)
 {
     std::scoped_lock<std::mutex> lock(mutex);
 
-    positions.resize(filaments.size());
+    drawCommands.push_back(DrawFilamentsCommand{
+        .positions = std::vector<glm::vec3>(filaments.size()),
+        .color = glm::vec3{color.r, color.g, color.b}});
 
 #pragma omp parallel for
     for (size_t i = 0; i < filaments.size(); i++)
-        positions[i] = VizUtils::vecToGL(filaments[i].position);
+        drawCommands.back().positions[i] = VizUtils::vecToGL(filaments[i].position);
 }
 
 void FilamentsViz::Draw()
 {
     std::scoped_lock<std::mutex> lock(mutex);
-    if (positions.size() == 0)
+    if (drawCommands.size() == 0)
         return;
 
     shader->use();
     scene.SetCameraInfoShader(*shader);
-    shader->setVec3("color", glm::vec3{0, 0, 1});
 
-    // set the updated positions
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    for (auto const& command : drawCommands)
+    {
+        shader->setVec3("color", command.color);
 
-    // draw
-    glBindVertexArray(quadVAO);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, positions.size()); // 100 triangles of 6 vertices each
+        // set the updated positions
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * command.positions.size(), command.positions.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // draw
+        glBindVertexArray(quadVAO);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, command.positions.size()); // 100 triangles of 6 vertices each
+    }
 }
 
-void FilamentsViz::CleanUp()
+void FilamentsViz::Clear()
 {
-    positions.clear();
+    drawCommands.clear();
 }
