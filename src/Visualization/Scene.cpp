@@ -193,6 +193,7 @@ void Scene::Render()
 
         // render into a framebuffer (texture), which will then be used by ImGui::Image
         bind_framebuffer();
+        glViewport(0, 0, windowSize.x, windowSize.y);
 
         // clear the buffer
         glClearColor(0.4f, 0.55f, 0.7f, 1.f);
@@ -235,7 +236,7 @@ void Scene::Render()
         const float window_width = ImGui::GetContentRegionAvail().x;
         const float window_height = ImGui::GetContentRegionAvail().y;
         ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
-        DrawControlsBox();
+        // DrawControlsBox();
 
         ImGui::End();
     }
@@ -245,7 +246,7 @@ void Scene::Render()
 void Scene::SetCameraInfoShader(Shader const& s)
 {
     // calculate the camera matrices and send them to the shader
-    glm::mat4 projection = glm::perspective(glm::radians(60.f), 1.f, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(60.f), windowSize.x / windowSize.y, 0.1f, 100.0f);
     projection[1] *= -1;
     s.setMat4("projection", projection);
 

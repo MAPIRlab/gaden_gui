@@ -15,7 +15,7 @@ void main()
     vec3 CameraRight_world = vec3(view[0][0], view[1][0], view[2][0]);
     vec3 CameraUp_world = vec3(view[0][1], view[1][1], view[2][1]);
 
-    float size = 0.03;
+    float size = 0.045;
     vec3 pos_world = aOffset
                     + CameraRight_world * aPos.x * size
                     + CameraUp_world * aPos.y * size;
