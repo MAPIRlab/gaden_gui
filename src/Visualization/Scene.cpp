@@ -89,6 +89,7 @@ void main()
 } // namespace markers
 
 constexpr ImVec2 windowSize = ImVec2(800, 600);
+// constexpr ImVec2 windowSize = ImVec2(1920, 1080);
 
 Scene::Scene()
     : filamentsViz(*this)

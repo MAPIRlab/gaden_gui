@@ -13,11 +13,10 @@ class SimulationMode : public RunSimMode
 {
 public:
     SimulationMode(ConfigurationMode& _configMode,
-                   gaden::RunningSimulation::Parameters& _params,
                    std::string_view _name)
         : RunSimMode(_configMode),
           name(_name),
-          simInfo(_params, configMode.configMetadata, name)
+          simInfo(configMode.configMetadata, name)
     {}
 
     void OnPush() override
@@ -45,20 +44,20 @@ public:
 
         ImGui::BeginDisabled(runSimThread.has_value());
         {
+            simInfo.DrawSource();
             simInfo.DrawGUI(true);
         }
+        ImGui::EndDisabled();
 
         DrawTimeControlsGUI(simInfo.params.deltaTime);
         DrawSimulationStateGUI();
         {
             ImGui::ScopedStyle s(ImGuiCol_Button, Colors::Save);
             if (ImGui::Button("Save"))
-                simInfo.params.WriteToYAML(configMode.configMetadata.GetSimulationFilePath(name));
+                simInfo.Save();
         }
         ImGui::SameLine();
         DrawButtonsGUI();
-
-        ImGui::EndDisabled();
     }
 
 private:

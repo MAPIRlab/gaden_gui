@@ -13,61 +13,49 @@
 struct SimulationInfo
 {
     std::string name;
-    gaden::RunningSimulation::Parameters& params;
+    gaden::EnvironmentConfigMetadata configMetadata;
+    gaden::RunningSimulation::Parameters params;
+    gaden::Color displayColor;
+
+    // hold copies of these to avoid having them reset when the type of source is changed and we have to create a new instance
     gaden::Vector3 sourcePosition;
     int sourceTypeSelected;
     gaden::GasType gasType;
-    gaden::EnvironmentConfigMetadata& configMetadata;
-    gaden::Color displayColor;
 
-    SimulationInfo(gaden::RunningSimulation::Parameters& _params, gaden::EnvironmentConfigMetadata& _configMetadata, std::string const& _name)
-        : params(_params), name(_name), configMetadata(_configMetadata)
+    SimulationInfo(gaden::EnvironmentConfigMetadata const& _configMetadata,
+                   std::string const& _name)
+        : name(_name),
+          configMetadata(_configMetadata),
+          params(configMetadata.GetSimulationParams(name))
     {
         params.saveDataDirectory = configMetadata.GetSimulationFilePath(name).parent_path() / "result";
 
         sourceTypeSelected = std::find(gaden::GasSource::sourceTypeNames.begin(), gaden::GasSource::sourceTypeNames.end(), params.source->Type()) - gaden::GasSource::sourceTypeNames.begin();
         gasType = params.source->gasType;
         sourcePosition = params.source->sourcePosition;
+        CreateSource();
     }
 
     void DrawGUI(bool allowWindLoop)
     {
         ImGui::Combo("Source type", &sourceTypeSelected, ConcatenatedNames().c_str());
         {
-            if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "point")
-            {
-                if (!Is<gaden::PointSource>(params.source))
-                    params.source = std::make_shared<gaden::PointSource>();
-            }
-            else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "sphere")
-            {
-                if (!Is<gaden::SphereSource>(params.source))
-                    params.source = std::make_shared<gaden::SphereSource>();
+            CreateSource();
+
+            if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "sphere")
                 ImGui::DragFloat("Source radius", &As<gaden::SphereSource>(params.source)->radius, 0.05f);
-            }
             else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "box")
-            {
-                if (!Is<gaden::BoxSource>(params.source))
-                    params.source = std::make_shared<gaden::BoxSource>();
                 ImGui::DragFloat3("Source size", &As<gaden::BoxSource>(params.source)->size.x, 0.05f);
-            }
             else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "line")
-            {
-                if (!Is<gaden::LineSource>(params.source))
-                    params.source = std::make_shared<gaden::LineSource>();
                 ImGui::DragFloat3("Line end", &As<gaden::LineSource>(params.source)->lineEnd.x, 0.05f);
-            }
             else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "cylinder")
             {
-                if (!Is<gaden::CylinderSource>(params.source))
-                    params.source = std::make_shared<gaden::CylinderSource>();
                 ImGui::DragFloat("Source Radius", &As<gaden::CylinderSource>(params.source)->radius, 0.05f);
                 ImGui::DragFloat("Source Height", &As<gaden::CylinderSource>(params.source)->height, 0.05f);
             }
         }
         ImGui::DragFloat3("Source Position", &sourcePosition.x, 0.05f, 0.0f, 0.0f, "%.2f");
         params.source->sourcePosition = sourcePosition;
-        DrawSource();
 
         if (gasType == gaden::GasType::unknown)
         {
@@ -100,8 +88,8 @@ struct SimulationInfo
                 ImGui::BeginDisabled(!params.windLoop->loop);
                 ImGui::InputScalar("Loop from", ImGuiDataType_U64, &params.windLoop->from, NULL);
                 ImGui::InputScalar("Loop to", ImGuiDataType_U64, &params.windLoop->to, NULL);
+                ImGui::EndDisabled();
             }
-            ImGui::EndDisabled();
             
             ImGui::Checkbox("Save results", &params.saveResults);
             ImGui::InputFloat("Save deltaT",    &params.saveDeltaTime);
@@ -112,23 +100,6 @@ struct SimulationInfo
             ImGui::ColorEdit4("Gas display color", &displayColor.r, ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
 
         // clang-format on
-    }
-
-private:
-    std::string ConcatenatedNames()
-    {
-        std::string s = "";
-        for (size_t i = 0; i < gaden::GasSource::sourceTypeNames.size(); i++)
-            s += gaden::GasSource::sourceTypeNames.at(i) + '\0';
-        return s;
-    }
-
-    std::string ConcatenatedGasTypes()
-    {
-        std::string s = "";
-        for (size_t i = 0; i < 14; i++)
-            s += gaden::to_string(gaden::GasType(i)) + '\0';
-        return s;
     }
 
     void DrawSource()
@@ -144,7 +115,58 @@ private:
         else if (Is<gaden::CylinderSource>(params.source))
             g_app->vizScene->DrawCylinder(params.source->sourcePosition,
                                           As<gaden::CylinderSource>(params.source)->radius,
-                                          As<gaden::CylinderSource>(params.source)->height, 
+                                          As<gaden::CylinderSource>(params.source)->height,
                                           displayColor);
+    }
+
+    void Save()
+    {
+        params.WriteToYAML(configMetadata.GetSimulationFilePath(name));
+    }
+
+private:
+    void CreateSource()
+    {
+        if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "point")
+        {
+            if (!Is<gaden::PointSource>(params.source))
+                params.source = std::make_shared<gaden::PointSource>();
+        }
+        else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "sphere")
+        {
+            if (!Is<gaden::SphereSource>(params.source))
+                params.source = std::make_shared<gaden::SphereSource>();
+        }
+        else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "box")
+        {
+            if (!Is<gaden::BoxSource>(params.source))
+                params.source = std::make_shared<gaden::BoxSource>();
+        }
+        else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "line")
+        {
+            if (!Is<gaden::LineSource>(params.source))
+                params.source = std::make_shared<gaden::LineSource>();
+        }
+        else if (gaden::GasSource::sourceTypeNames.at(sourceTypeSelected) == "cylinder")
+        {
+            if (!Is<gaden::CylinderSource>(params.source))
+                params.source = std::make_shared<gaden::CylinderSource>();
+        }
+    }
+
+    std::string ConcatenatedNames()
+    {
+        std::string s = "";
+        for (size_t i = 0; i < gaden::GasSource::sourceTypeNames.size(); i++)
+            s += gaden::GasSource::sourceTypeNames.at(i) + '\0';
+        return s;
+    }
+
+    std::string ConcatenatedGasTypes()
+    {
+        std::string s = "";
+        for (size_t i = 0; i < 14; i++)
+            s += gaden::to_string(gaden::GasType(i)) + '\0';
+        return s;
     }
 };

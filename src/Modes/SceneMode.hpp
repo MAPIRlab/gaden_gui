@@ -3,6 +3,7 @@
 #include "ImGuiUtils.hpp"
 #include "Modes/ConfigurationMode.hpp"
 #include "Modes/RunSimMode.hpp"
+#include "Modes/SimulationListMode.hpp"
 #include "SimulationInfo.hpp"
 #include "Utils.hpp"
 #include "gaden/Scene.hpp"
@@ -17,7 +18,7 @@ public:
         metadata = configMode.configMetadata.GetRunningScene(name);
         std::vector simNames = configMode.configMetadata.GetSimulationNamesInScene(name);
         for (size_t i = 0; i < metadata.params.size(); i++)
-            simInfos.emplace_back(metadata.params.at(i), configMode.configMetadata, simNames.at(i));
+            simInfos.emplace_back(configMode.configMetadata, simNames.at(i));
     }
 
     void OnPush() override
@@ -46,20 +47,73 @@ public:
         for (size_t i = 0; i < simInfos.size(); i++)
         {
             auto& simInfo = simInfos.at(i);
+            simInfo.DrawSource();
             if (ImGui::CollapsingHeader(simInfo.name.c_str()))
             {
                 simInfo.DrawGUI(i == 0);
                 {
                     ImGui::ScopedStyle style(ImGuiCol_Button, Colors::Save);
                     if (ImGui::Button("Save Changes"))
-                        simInfo.params.WriteToYAML(simInfo.configMetadata.GetSimulationFilePath(simInfo.name));
+                        simInfo.Save();
                 }
+            }
+        }
+
+        if (ImGui::ButtonCenteredOnLine("Add existing simulation"))
+        {
+            ImGui::OpenPopup("Select Simulation");
+            selectingSimulations = true;
+        }
+        if (ImGui::ButtonCenteredOnLine("Create new simulation"))
+        {
+            std::optional<std::string> name = SimulationListMode::CreateSimulation(configMode);
+            if (name)
+                simInfos.emplace_back(configMode.configMetadata, *name);
+        }
+
+        if (selectingSimulations)
+        {
+            ImGui::SetNextWindowSize({500, 600});
+            if (ImGui::BeginPopupModal("Select Simulation", &selectingSimulations))
+            {
+                ImGui::VerticalSpace(10);
+                ImGui::Text("Simulation list");
+                ImGui::Separator();
+                ImGui::VerticalSpace(10);
+                for (auto const& name : configMode.configMetadata.simulations)
+                    if (ImGui::ButtonCenteredOnLine(name.c_str()))
+                    {
+                        bool alreadyAdded = std::find_if(simInfos.begin(), simInfos.end(), [&name](SimulationInfo const& info)
+                                                         {
+                                                             return info.name == name;
+                                                         }) != simInfos.end();
+                        if (alreadyAdded)
+                            Utils::DisplayError("Can't add multiple copies of the same simulation!");
+                        else
+                        {
+                            simInfos.emplace_back(configMode.configMetadata, name);
+                            selectingSimulations = false;
+                        }
+                    }
+
+                ImGui::EndPopup();
             }
         }
 
         if (!simInfos.empty())
             DrawTimeControlsGUI(simInfos.at(0).params.deltaTime);
         DrawSimulationStateGUI();
+
+        {
+            ImGui::ScopedStyle s(ImGuiCol_Button, Colors::Save);
+            if (ImGui::Button("Save Changes"))
+            {
+                for (auto& info : simInfos)
+                    info.Save();
+                UpdateMetadata();
+                metadata.WriteToYAML(configMode.configMetadata.GetSceneFilePath(sceneName));
+            }
+        }
         DrawButtonsGUI();
     }
 
@@ -69,21 +123,13 @@ protected:
         try
         {
             currentSimTime = 0;
-            metadata.params.clear();
-            metadata.gasDisplayColors.clear();
-            
-            for (auto const& sim : simInfos)
-            {
-                metadata.params.push_back(sim.params);
-                metadata.gasDisplayColors.push_back(sim.displayColor);
-            }
-
+            UpdateMetadata();
             gaden::Scene scene(metadata, configMode.config);
 
             float r = 0;
             if (isRateLimited)
                 r = rateLimit;
-            gaden::Utils::Time::Rate rate(r);
+            gaden::Utils::Time::Rate rate(r > 0 ? r : 1); // passing 0 technically causes UB due to division by 0
 
             auto simulations = scene.GetSimulations();
             auto firstSim = As<gaden::RunningSimulation>(simulations.at(0));
@@ -120,8 +166,22 @@ protected:
         simDone = true;
     }
 
+    void UpdateMetadata()
+    {
+        metadata.params.clear();
+        metadata.gasDisplayColors.clear();
+
+        for (auto const& sim : simInfos)
+        {
+            metadata.params.push_back(sim.params);
+            metadata.gasDisplayColors.push_back(sim.displayColor);
+        }
+    }
+
 private:
     std::vector<SimulationInfo> simInfos;
     std::string sceneName;
     gaden::RunningSceneMetadata metadata;
+
+    bool selectingSimulations = false;
 };
