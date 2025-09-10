@@ -88,7 +88,7 @@ void main()
 })";
 } // namespace markers
 
-constexpr ImVec2 windowSize = ImVec2(800, 600);
+static ImVec2 windowSize = ImVec2(800, 600);
 // constexpr ImVec2 windowSize = ImVec2(1920, 1080);
 
 Scene::Scene()
@@ -182,14 +182,26 @@ void Scene::Render()
 {
     if (active)
     {
-        ImGui::SetNextWindowSize(windowSize);
-        // offset the window so it is not perfectly aligned with the main viewport -- since you want to be able to see both at the same time
-        ImVec2 pos = ImGui::GetMainViewport()->GetCenter();
-        pos.x += 400;
-        pos.y -= 200;
-        ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+        //initial size and position
+        {
+            ImGui::SetNextWindowSize(windowSize, ImGuiCond_Appearing);
+            // offset the window so it is not perfectly aligned with the main viewport -- since you want to be able to see both at the same time
+            ImVec2 pos = ImGui::GetMainViewport()->GetCenter();
+            pos.x += 400;
+            pos.y -= 200;
+            ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+        }
 
-        ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("Scene", &active, ImGuiWindowFlags_NoCollapse);
+
+        //handle resizing
+        ImVec2 _windowSize = ImGui::GetWindowSize();
+        if(_windowSize.x != windowSize.x || _windowSize.y != windowSize.y)
+        {
+            windowSize = _windowSize;
+            rescale_framebuffer(windowSize.x, windowSize.y);
+        }
+
         camera.HandleInput(g_app->GetDeltaTime());
 
         // render into a framebuffer (texture), which will then be used by ImGui::Image
