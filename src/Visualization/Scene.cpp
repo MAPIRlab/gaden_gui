@@ -249,7 +249,7 @@ void Scene::Render()
         const float window_width = ImGui::GetContentRegionAvail().x;
         const float window_height = ImGui::GetContentRegionAvail().y;
         ImGui::Image((ImTextureID)(intptr_t)texture_id, ImVec2(window_width, window_height));
-        // DrawControlsBox();
+        DrawControlsBox();
 
         ImGui::End();
     }
