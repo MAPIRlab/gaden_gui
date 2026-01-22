@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.11)
 project(gaden_gui)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE "Debug")
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -fno-omit-frame-pointer")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 

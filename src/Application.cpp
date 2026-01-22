@@ -6,12 +6,11 @@
 
 void Application::Run()
 {
-    ImguiGL imgui;
-    imgui.Setup(nullptr,
+    ImguiGL::Setup(nullptr,
                 "Gaden",
                 900,
                 930,
-                imgui.FlagsFixedLayout() | ImGuiConfigFlags_ViewportsEnable); // enable multi-viewports so we can render the geometry on a popup window!
+                ImguiGL::FlagsFixedLayout() | ImGuiConfigFlags_ViewportsEnable); // enable multi-viewports so we can render the geometry on a popup window!
 
     vizScene = std::make_unique<Scene>();
     // load fonts
@@ -32,20 +31,20 @@ void Application::Run()
     gaden::Utils::Time::Clock clock;
     gaden::Utils::Time::TimePoint lastIteration = clock.now();
     gaden::Utils::Time::Rate rate(60);
-    while (!shouldClose && !imgui.ShouldClose())
+    while (!shouldClose && !ImguiGL::ShouldClose())
     {
         // calculate deltaTime
         deltaT = gaden::Utils::Time::toSeconds(clock.now() - lastIteration);
         lastIteration = clock.now();
 
         // start the frame
-        imgui.StartFrame();
+        ImguiGL::StartFrame();
 
         // render the main window
         ImGui::PushFont(Fonts::body, 0.f);
-        imgui.SetNextWindowFullscreen();
+        ImguiGL::SetNextWindowFullscreen();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Background);
-        ImGui::Begin("Main", NULL, imgui.FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin("Main", NULL, ImguiGL::FlagsFixedLayout() | ImGuiWindowFlags_NoTitleBar);
         {
             DrawHeader();
             ImGui::VerticalSpace(10.f);
@@ -60,11 +59,11 @@ void Application::Run()
 
 
         // finalize the frame
-        imgui.Render();
+        ImguiGL::Render();
         rate.sleep();
     }
 
-    imgui.Close();
+    ImguiGL::Close();
 }
 
 void Application::PushMode(std::shared_ptr<Mode> mode)

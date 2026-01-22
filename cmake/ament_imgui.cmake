@@ -13,7 +13,7 @@ else()
     FetchContent_Declare(
         ament_imgui
         GIT_REPOSITORY git@github.com:PepeOjeda/ament_imgui.git
-        GIT_TAG master
+        GIT_TAG 25986f8
     )
     FetchContent_GetProperties(ament_imgui)
     if(NOT ament_imgui_POPULATED)
