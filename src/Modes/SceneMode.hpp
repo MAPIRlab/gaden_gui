@@ -50,12 +50,14 @@ public:
             simInfo.DrawSource();
             if (ImGui::CollapsingHeader(simInfo.name.c_str()))
             {
+                ImGui::PushID(simInfo.name.c_str());
                 simInfo.DrawGUI(i == 0);
                 {
                     ImGui::ScopedStyle style(ImGuiCol_Button, Colors::Save);
                     if (ImGui::Button("Save Changes"))
                         simInfo.Save();
                 }
+                ImGui::PopID();
             }
         }
 
